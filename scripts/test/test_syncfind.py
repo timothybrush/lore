@@ -21,19 +21,19 @@ def test_syncfind(new_lore_repo):
     with repo.open_file(text_file, "w+b") as output_file:
         output_file.write(os.urandom(100))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Test commit 1")
 
     with repo.open_file(text_file, "w+b") as output_file:
         output_file.write(os.urandom(100))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Test commit 2")
 
     with repo.open_file(text_file, "w+b") as output_file:
         output_file.write(os.urandom(100))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Test commit 3")
     repo.branch_push()
 

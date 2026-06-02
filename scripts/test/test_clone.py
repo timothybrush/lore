@@ -24,7 +24,7 @@ def test_clone_status_behind_remote_not_divergent(new_lore_repo):
     # Seed the source repo with one revision and push to remote.
     with repo.open_file("seed.txt", "w+") as f:
         f.write("seed\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Seed", offline=True)
     repo.push()
 
@@ -35,7 +35,7 @@ def test_clone_status_behind_remote_not_divergent(new_lore_repo):
     # Advance the remote main branch via clone_b.
     with clone_b.open_file("from_b.txt", "w+") as f:
         f.write("from clone_b\n")
-    clone_b.stage(offline=True)
+    clone_b.stage(scan=True, offline=True)
     clone_b.commit("Advance from clone_b", offline=True)
     clone_b.push()
 
@@ -75,7 +75,7 @@ def test_clone_no_tracking_creates_local_branch(new_lore_repo):
     # Seed the source repo with one revision and push to remote.
     with repo.open_file("seed.txt", "w+") as f:
         f.write("seed\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Seed", offline=True)
     repo.push()
 

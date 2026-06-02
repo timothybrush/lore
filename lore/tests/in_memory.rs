@@ -75,6 +75,7 @@ mod tests {
         let args = LoreFileStageArgs {
             paths: LoreArray::from_vec(vec![LoreString::from(&file_path)]),
             case_change: 0,
+            scan: 1,
         };
         let result = lore::file::stage(globals.clone(), args, None).await;
         assert_eq!(result, 0, "Failed to stage file");
@@ -167,6 +168,7 @@ mod tests {
         let args = LoreFileStageArgs {
             paths: LoreArray::from_vec(vec![LoreString::from(&file_path)]),
             case_change: 0,
+            scan: 1,
         };
         let result = lore::file::stage(globals.clone(), args, None).await;
         assert_eq!(result, 0, "Failed to stage file");

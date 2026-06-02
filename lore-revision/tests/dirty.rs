@@ -95,6 +95,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -255,6 +256,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -391,6 +393,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -487,6 +490,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -517,6 +521,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -637,6 +642,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -757,6 +763,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -884,6 +891,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -1056,6 +1064,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -1189,6 +1198,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -1337,6 +1347,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -1470,6 +1481,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -1588,6 +1600,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -1647,6 +1660,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -1738,6 +1752,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -1773,6 +1788,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -1876,6 +1892,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -1922,6 +1939,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -2017,6 +2035,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -2052,6 +2071,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -2179,6 +2199,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -2324,6 +2345,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -2504,6 +2526,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -2531,6 +2554,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -2623,6 +2647,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await
@@ -2671,6 +2696,7 @@ mod tests {
                         node_flags: NodeFlags::NoFlags,
                         file_id: None,
                         no_children: false,
+                        scan: true,
                     },
                 )
                 .await

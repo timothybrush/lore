@@ -20,7 +20,7 @@ def test_merge_folder_delete(new_lore_repo):
     with repo.open_file(root_file, "w+") as output_file:
         output_file.writelines(["One line\n", "Another line\n", "Third line\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Revision 1 - added test file in root")
     repo.push()
 
@@ -30,7 +30,7 @@ def test_merge_folder_delete(new_lore_repo):
     folder_file = "Test/folder.bin"
     with repo.open_file(folder_file, "w+b") as output_file:
         output_file.write(os.urandom(1000))
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Revision 2 - added test file in folder")
     repo.push()
 
@@ -40,7 +40,7 @@ def test_merge_folder_delete(new_lore_repo):
     # Modify test file in folder.
     with repo.open_file(folder_file, "w+b") as output_file:
         output_file.write(os.urandom(1000))
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Revision 3 - modify test file in folder")
     repo.push()
 
@@ -211,7 +211,7 @@ def test_merge_folder_delete_with_added_child(new_lore_repo):
     repo.make_dirs("Test/Second")
     with repo.open_file("Test/Second/existing.bin", "w+b") as output_file:
         output_file.write(os.urandom(512))
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Revision 1 - root.txt and Test/Second/existing.bin")
     repo.push()
 
@@ -219,7 +219,7 @@ def test_merge_folder_delete_with_added_child(new_lore_repo):
     repo.branch_create("feature")
     with repo.open_file("Test/Second/new_file.bin", "w+b") as output_file:
         output_file.write(os.urandom(512))
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Revision 2 (feature) - add Test/Second/new_file.bin")
     repo.push()
 
@@ -227,7 +227,7 @@ def test_merge_folder_delete_with_added_child(new_lore_repo):
     # levels of the nested directory.
     repo.branch_switch("main")
     repo.rmtree("Test")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Revision 2 (main) - delete Test/ folder")
     repo.push()
 

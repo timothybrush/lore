@@ -475,9 +475,37 @@ pub struct LoreFileStageArgs {
     pub paths: LoreArray<LoreString>,
     /// Case change handling, 0 = error, 1 = update filesystem (keep), 2 = update repository (rename)
     pub case_change: u32,
+    /// Force a recursive filesystem scan for directory paths.
+    ///
+    /// Has no effect on individual file paths — those are always reconciled
+    /// against the filesystem regardless of this flag.
+    ///
+    /// When `0` (default), directory paths stage only the files and child
+    /// directories currently marked dirty in the repository state. When `1`,
+    /// directory paths are walked recursively on the filesystem and every
+    /// file is reconciled, ignoring the dirty flags.
+    pub scan: u8,
 }
 
 /// Stages one or more files for inclusion in the next commit.
+///
+/// # Path handling
+///
+/// Each path in [`LoreFileStageArgs::paths`] is classified as either an
+/// individual file path or a directory path:
+///
+/// - **Individual file paths** are always reconciled against the filesystem.
+///   The file is read and its current state is staged regardless of dirty
+///   flags. The [`scan`](LoreFileStageArgs::scan) flag has no effect.
+/// - **Directory paths** (including the repository root) by default stage
+///   only the files and child directories that are currently marked dirty in
+///   the repository state — this is the fast path and relies on prior
+///   notifications or `status --scan` calls to keep dirty flags accurate.
+///   When [`scan`](LoreFileStageArgs::scan) is set, the directory is walked
+///   recursively, every contained file is reconciled against the filesystem,
+///   and the dirty flags are disregarded. Use this when you need a full
+///   reconciliation (e.g. after operations that may have changed files
+///   without going through the dirty-tracking path).
 ///
 /// # Events
 ///
@@ -526,6 +554,7 @@ async fn stage_local(
                 node_flags: node::NodeFlags::NoFlags,
                 file_id: None,
                 no_children: false,
+                scan: args.scan != 0,
             };
 
             file::stage::stage(repository, &token, args.paths, options).await
@@ -589,6 +618,7 @@ async fn stage_merge_local(
                 node_flags: node::NodeFlags::NoFlags,
                 file_id: None,
                 no_children: false,
+                scan: true,
             };
 
             file::stage::stage_merge(repository, &token, args.paths, options).await
@@ -656,6 +686,7 @@ async fn stage_move_local(
                 node_flags: node::NodeFlags::NoFlags,
                 file_id: None,
                 no_children: false,
+                scan: true,
             };
 
             file::stage::stage_move(repository, &token, from, to, options).await

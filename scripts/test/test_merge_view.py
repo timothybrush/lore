@@ -26,7 +26,7 @@ def test_merge_restart(new_lore_repo, tmp_path_factory):
         output_file.write(os.urandom(4096))
 
     # (source) Stage the files
-    repo.stage()
+    repo.stage(scan=True)
 
     # (source) Commit the files
     repo.commit()
@@ -76,7 +76,7 @@ def test_merge_restart(new_lore_repo, tmp_path_factory):
         output_file.write(os.urandom(4096))
 
     # (source) Stage the modify
-    repo.file_stage()
+    repo.file_stage(scan=True)
 
     # (source) Commit the modify
     repo.commit("Modified all files")

@@ -22,7 +22,7 @@ def test_rest(new_lore_repo, request, lore_main_server_ports):
     with repo.open_file(file, "wb+") as output_file:
         output_file.write(contents)
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push(level="debug")
 

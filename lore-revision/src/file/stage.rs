@@ -116,6 +116,20 @@ async fn try_stage_path(
     Some(relative_path)
 }
 
+/// Stage `paths` into the staged revision and return its hash.
+///
+/// Each entry in `paths` is classified as either an individual file path or
+/// a directory path (the repository root counts as a directory):
+///
+/// - **Individual file paths** are always reconciled against the filesystem.
+///   The file is read and its current state is staged regardless of dirty
+///   flags. [`StageOptions::scan`] has no effect on these paths.
+/// - **Directory paths** by default stage only the files and child
+///   directories currently marked dirty in the repository state — this is
+///   the fast path and relies on prior notifications or `status --scan`
+///   calls to keep dirty flags accurate. When [`StageOptions::scan`] is
+///   `true`, the directory is walked recursively on the filesystem, every
+///   contained file is reconciled, and the dirty flags are disregarded.
 pub async fn stage(
     repository: Arc<RepositoryContext>,
     token: &RepositoryWriteToken,
@@ -204,22 +218,18 @@ pub async fn stage(
                 } else {
                     Some(Arc::new(mask))
                 };
-                lore_spawn!(
-                    tasks,
-                    stage::stage_filesystem_path(
-                        repository.clone(),
-                        state.clone(),
-                        repository.require_path()?.to_path_buf(),
-                        RelativePathBuf::new(),
-                        ROOT_NODE,
-                        relative_path.clone(),
-                        stats.clone(),
-                        options,
-                        Some(link_tracker.clone()),
-                        mask_arc,
-                    )
-                );
-                main_count += 1;
+
+                main_count += spawn_stage_tasks(
+                    &mut tasks,
+                    repository.clone(),
+                    state.clone(),
+                    relative_path.clone(),
+                    stats.clone(),
+                    options,
+                    link_tracker.clone(),
+                    mask_arc,
+                )
+                .await?;
 
                 // Plus one task per matched layer, staging the layer's whole
                 // contents (no remain — the input path is above the mount).
@@ -239,22 +249,17 @@ pub async fn stage(
                 }
             }
             LayerRoute::Disjoint => {
-                lore_spawn!(
-                    tasks,
-                    stage::stage_filesystem_path(
-                        repository.clone(),
-                        state.clone(),
-                        repository.require_path()?.to_path_buf(),
-                        RelativePathBuf::new(),
-                        ROOT_NODE,
-                        relative_path.clone(),
-                        stats.clone(),
-                        options,
-                        Some(link_tracker.clone()),
-                        None,
-                    )
-                );
-                main_count += 1;
+                main_count += spawn_stage_tasks(
+                    &mut tasks,
+                    repository.clone(),
+                    state.clone(),
+                    relative_path.clone(),
+                    stats.clone(),
+                    options,
+                    link_tracker.clone(),
+                    None,
+                )
+                .await?;
             }
         }
 
@@ -384,6 +389,135 @@ pub async fn stage(
     }
 
     Ok(staged_revision)
+}
+
+/// Spawn staging tasks for a path, using dirty-based staging or filesystem walk.
+///
+/// When `options.scan` is false, checks if the target path is a directory in the
+/// state tree. If so, collects dirty file paths under it and spawns a staging task
+/// for each one. Single file paths always use the filesystem walk for backward
+/// compatibility. When `options.scan` is true, always uses the filesystem walk.
+///
+/// Returns the number of tasks spawned for the main repository.
+#[allow(clippy::too_many_arguments)]
+async fn spawn_stage_tasks(
+    tasks: &mut JoinSet<Result<crate::node::NodeLink, StageError>>,
+    repository: Arc<RepositoryContext>,
+    state: Arc<State>,
+    relative_path: RelativePath,
+    stats: Arc<StageStats>,
+    options: StageOptions,
+    link_tracker: Arc<LinkTracker>,
+    layer_mask: Option<Arc<Vec<String>>>,
+) -> Result<usize, StageError> {
+    // When scan is not requested, try dirty-based staging for directories.
+    //
+    // `find_node_link` follows link mounts transparently — if the path
+    // crosses one, the returned `NodeLink` references a node in the linked
+    // repository. We must read the node from the state that actually owns
+    // it, otherwise we'd hit a colliding block at the same coordinates in
+    // the parent state and misclassify the target (e.g. a linked file would
+    // appear as a parent-state directory and route through the dirty path,
+    // which then collects nothing).
+    if !options.scan {
+        let resolved: Option<(
+            Arc<State>,
+            Arc<RepositoryContext>,
+            crate::node::NodeID,
+            bool,
+        )> = if relative_path.is_empty() {
+            // Root path is always a directory in the main repository.
+            Some((state.clone(), repository.clone(), ROOT_NODE, true))
+        } else if let Ok(node_link) = state
+            .find_node_link(repository.clone(), relative_path.as_str())
+            .await
+            && node_link.is_valid()
+        {
+            let (resolved_repository, resolved_state) = if node_link.repository == repository.id {
+                (repository.clone(), state.clone())
+            } else {
+                let linked_repository =
+                    Arc::new(repository.to_link_context(node_link.repository).await);
+                let linked_state =
+                    State::deserialize(linked_repository.clone(), node_link.revision)
+                        .await
+                        .forward::<StageError>(
+                            "Failed to deserialize linked state for dirty staging",
+                        )?;
+                (linked_repository, linked_state)
+            };
+            let node = resolved_state
+                .node(resolved_repository.clone(), node_link.node)
+                .await
+                .forward::<StageError>("Failed to resolve node for dirty staging")?;
+            Some((
+                resolved_state,
+                resolved_repository,
+                node_link.node,
+                node.is_directory(),
+            ))
+        } else {
+            None
+        };
+
+        if let Some((resolved_state, resolved_repository, root_node, true)) = resolved {
+            // `relative_path` is the path in the parent repository — prepend it
+            // so dirty paths come back as parent-relative paths suitable for
+            // the filesystem walk below, which traverses links itself.
+            let dirty_paths = resolved_state
+                .collect_dirty_paths(
+                    resolved_repository,
+                    root_node,
+                    RelativePathBuf::new_from_clean_parts(relative_path.as_str(), ""),
+                )
+                .await
+                .forward::<StageError>("Failed to collect dirty paths")?;
+
+            if dirty_paths.is_empty() {
+                return Ok(0);
+            }
+
+            let count = dirty_paths.len();
+            for dirty_path in dirty_paths {
+                let dirty_relative =
+                    RelativePath::new_from_initial_path(dirty_path.as_str()).unwrap_or_default();
+                lore_spawn!(
+                    tasks,
+                    stage::stage_filesystem_path(
+                        repository.clone(),
+                        state.clone(),
+                        repository.require_path()?.to_path_buf(),
+                        RelativePathBuf::new(),
+                        ROOT_NODE,
+                        dirty_relative,
+                        stats.clone(),
+                        options,
+                        Some(link_tracker.clone()),
+                        layer_mask.clone(),
+                    )
+                );
+            }
+            return Ok(count);
+        }
+    }
+
+    // Filesystem walk: scan requested, or path is a single file
+    lore_spawn!(
+        tasks,
+        stage::stage_filesystem_path(
+            repository.clone(),
+            state.clone(),
+            repository.require_path()?.to_path_buf(),
+            RelativePathBuf::new(),
+            ROOT_NODE,
+            relative_path,
+            stats.clone(),
+            options,
+            Some(link_tracker.clone()),
+            layer_mask,
+        )
+    );
+    Ok(1)
 }
 
 /// Recursively mark all children of a directory node as moved.

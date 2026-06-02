@@ -78,7 +78,7 @@ class TestNotifications:
             text_file = "text-File.txt"
             with repo.open_file(text_file, "w+") as file:
                 file.writelines(["One line"])
-            repo.stage()
+            repo.stage(scan=True)
             repo.commit()
             repo.push()
 
@@ -86,7 +86,7 @@ class TestNotifications:
             repo.branch_create(child_branch_name)
             with repo.open_file(text_file, "w+") as file:
                 file.writelines(["Two line"])
-            repo.stage()
+            repo.stage(scan=True)
             repo.commit()
             # push to raise the 'pushed' notification
             repo.push()
@@ -117,7 +117,7 @@ class TestNotifications:
             text_file = "text-File.txt"
             with repo.open_file(text_file, "w+") as file:
                 file.writelines(["One line"])
-            repo.stage()
+            repo.stage(scan=True)
             repo.commit()
             repo.push()
 

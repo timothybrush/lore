@@ -22,19 +22,19 @@ def test_divergent_delete_resolve_mine_deletes_folder(new_lore_repo):
     with repo.open_file("folder/file.txt", "w+") as output_file:
         output_file.writelines(["A line\n"])
 
-    repo.stage(".")
+    repo.stage(".", scan=True)
     repo.commit("Initial commit")
     repo.push()
 
     clone: Lore = repo.clone()
     clone.rmtree("folder")
-    clone.stage(".")
+    clone.stage(".", scan=True)
     clone.commit("Remove folder")
     clone.push()
 
     with repo.open_file("folder/file.txt", "w+") as output_file:
         output_file.writelines(["An updated line\n"])
-    repo.stage(".")
+    repo.stage(".", scan=True)
     repo.commit("Edit file")
     with pytest.raises(BranchDivergedError):
         repo.push()

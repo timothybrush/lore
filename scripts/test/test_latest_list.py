@@ -22,7 +22,7 @@ def test_latest_list(new_lore_repo):
                 ["One line\n", "Another line\n", "Third line\n {}".format(i)]
             )
 
-        repo.stage()
+        repo.stage(scan=True)
         repo.commit()
         repo.push()
 

@@ -50,7 +50,20 @@ pub struct RepositoryArgs {
 
 #[derive(Args)]
 pub struct RepositoryStatusArgs {
-    /// Scan filesystem for changes and mark as dirty
+    /// Walk the filesystem under the given paths and reconcile every
+    /// file against the current revision.
+    ///
+    /// Detected modifications, adds, and deletes are marked dirty;
+    /// stale dirty flags are cleared. The refreshed flags are
+    /// persisted in the staged state so subsequent `lore stage` and
+    /// `lore status` calls see an accurate picture without
+    /// rescanning.
+    ///
+    /// Without `--scan`, status reports only what is currently
+    /// tracked: the staged revision (if any) plus files already
+    /// marked dirty. Mark files individually with `lore dirty` for
+    /// targeted updates, or pass `--scan` here for bulk
+    /// reconciliation.
     #[clap(long, action)]
     scan: bool,
 
@@ -286,7 +299,12 @@ pub struct RepositoryVerifyFragmentArgs {
 
 #[derive(Subcommand)]
 pub enum RepositoryCommands {
-    /// Show current repository status
+    /// Show current repository status.
+    ///
+    /// Reports the staged revision (if any) and the files currently
+    /// marked dirty. No filesystem walk runs by default — pass
+    /// `--scan` to walk the filesystem and refresh dirty flags. See
+    /// `lore status --help` (top-level alias) for the full workflow.
     Status(RepositoryStatusArgs),
 
     /// Get info about a repository

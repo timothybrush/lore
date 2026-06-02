@@ -31,7 +31,7 @@ def test_push(new_lore_repo):
         output_file.write(os.urandom(345678901))
 
     # Stage the files
-    repo.stage()
+    repo.stage(scan=True)
 
     # Commit offline
     repo.commit("Test commit", offline=True)
@@ -44,7 +44,7 @@ def test_push(new_lore_repo):
         output_file.write(os.urandom(345678901))
 
     # Stage the repository again
-    repo.stage()
+    repo.stage(scan=True)
 
     # Commit the files again
     repo.commit("My feature commit", offline=True)
@@ -57,7 +57,7 @@ def test_push(new_lore_repo):
         output_file.write(os.urandom(345678901))
 
     # Stage the repository again
-    repo.stage()
+    repo.stage(scan=True)
 
     # Commit the files again
     repo.commit("My mega feature commit", offline=True)
@@ -127,7 +127,7 @@ def test_push_fast_forward_merge(new_lore_repo):
         f.write("initial engine content\n")
     with repo.open_file("readme.txt", "w+") as f:
         f.write("initial readme\n")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial commit with deep tree", offline=True)
     repo.push()
 
@@ -138,7 +138,7 @@ def test_push_fast_forward_merge(new_lore_repo):
         f.write("new utility from feature branch\n")
     with repo.open_file(os.path.join("src", "core", "utils", "helpers.txt"), "w+") as f:
         f.write("modified helpers from feature branch\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Feature branch changes in deep tree", offline=True)
     repo.push()
 
@@ -157,7 +157,7 @@ def test_push_fast_forward_merge(new_lore_repo):
     clone_b.make_dirs(os.path.join("docs", "api", "v2"))
     with clone_b.open_file(os.path.join("docs", "api", "v2", "reference.txt"), "w+") as f:
         f.write("API reference docs\n")
-    clone_b.stage(offline=True)
+    clone_b.stage(scan=True, offline=True)
     clone_b.commit("Concurrent push from clone B", offline=True)
     clone_b.push()
 
@@ -245,7 +245,7 @@ def test_push_fast_forward_merge_conflict(new_lore_repo):
     repo.make_dirs(os.path.join("src", "core", "utils"))
     with repo.open_file(os.path.join("src", "core", "utils", "shared.txt"), "w+") as f:
         f.write("initial shared content\n")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial commit", offline=True)
     repo.push()
 
@@ -253,7 +253,7 @@ def test_push_fast_forward_merge_conflict(new_lore_repo):
     repo.branch_create("feature-conflict")
     with repo.open_file(os.path.join("src", "core", "utils", "shared.txt"), "w+") as f:
         f.write("feature branch modified shared content\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Feature modifies shared file", offline=True)
     repo.push()
 
@@ -267,7 +267,7 @@ def test_push_fast_forward_merge_conflict(new_lore_repo):
     clone_b = repo.clone(direct_file_io=True)
     with clone_b.open_file(os.path.join("src", "core", "utils", "shared.txt"), "w+") as f:
         f.write("concurrent change to shared file on main\n")
-    clone_b.stage(offline=True)
+    clone_b.stage(scan=True, offline=True)
     clone_b.commit("Concurrent conflicting push", offline=True)
     clone_b.push()
 
@@ -288,14 +288,14 @@ def test_push_fast_forward_merge_non_merge(new_lore_repo):
         f.write("initial config\n")
     with repo.open_file("readme.txt", "w+") as f:
         f.write("initial readme\n")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial", offline=True)
     repo.push()
 
     # Make a regular (non-merge) commit modifying a file
     with repo.open_file(os.path.join("src", "core", "utils", "config.txt"), "w+") as f:
         f.write("modified config\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Regular commit", offline=True)
 
     # Advance main from another clone with a non-conflicting change
@@ -304,7 +304,7 @@ def test_push_fast_forward_merge_non_merge(new_lore_repo):
     clone_b.make_dirs(repo_b_dir)
     with clone_b.open_file(os.path.join(repo_b_dir, "install.txt"), "w+") as f:
         f.write("installation guide\n")
-    clone_b.stage(offline=True)
+    clone_b.stage(scan=True, offline=True)
     clone_b.commit("Concurrent push with docs", offline=True)
     clone_b.push()
 
@@ -371,7 +371,7 @@ def test_push_non_current_branch_preserves_anchor(new_lore_repo):
     # Initial commit on main, pushed so main exists on the remote.
     with repo.open_file("file.txt", "w+") as f:
         f.write("initial\n")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial commit")
     repo.push()
     main_head = repo.branch_info("main").local_latest
@@ -383,7 +383,7 @@ def test_push_non_current_branch_preserves_anchor(new_lore_repo):
     # what the buggy anchor leak would later surface.
     with repo.open_file("file.txt", "w+") as f:
         f.write("on branch-a\n")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Branch-a local commit", offline=True)
     branch_a_head = repo.branch_info("branch-a").local_latest
     assert branch_a_head != main_head, (

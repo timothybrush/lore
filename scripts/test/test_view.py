@@ -45,7 +45,7 @@ def test_view(new_lore_repo, tmp_path_factory):
             ) as output_file:
                 output_file.write(os.urandom(1024))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -104,7 +104,7 @@ def test_view(new_lore_repo, tmp_path_factory):
     clone.stage(os.path.join(second_dir, "1", "1.uasset"))
     clone.commit("Modification commit")
 
-    clone.stage()
+    clone.stage(scan=True)
     clone.commit("Second modification commit")
     clone.push()
 

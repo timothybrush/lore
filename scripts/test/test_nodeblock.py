@@ -27,7 +27,7 @@ def test_nodeblock(new_lore_repo):
                 with repo.open_file(file_path, "w+b") as output_file:
                     output_file.write(os.urandom(16))
 
-        repo.stage(first_dir)
+        repo.stage(scan=True)
         repo.commit("Import 10k", local=True)
 
     for ipass in range(10):
@@ -58,7 +58,7 @@ def test_nodeblock(new_lore_repo):
             with repo.open_file(file_path, "w+b") as output_file:
                 output_file.write(os.urandom(16))
 
-        repo.stage()
+        repo.stage(scan=True)
         repo.commit("Delete files", local=True)
 
         # Delete 10k files
@@ -86,7 +86,7 @@ def test_nodeblock(new_lore_repo):
             with repo.open_file(file_path, "w+b") as output_file:
                 output_file.write(os.urandom(16))
 
-        repo.stage()
+        repo.stage(scan=True)
         repo.commit("Add files", local=True)
 
         repo.push()

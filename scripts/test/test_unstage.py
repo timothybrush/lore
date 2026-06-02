@@ -39,7 +39,7 @@ def test_unstage_clears_staged_state(new_lore_repo):
     # Setup: initial commit so main has content
     with repo.open_file("initial.txt", "w+") as f:
         f.write("initial content\n")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -162,7 +162,7 @@ def test_unstage_discard_counts(new_lore_repo):
     # Setup: initial commit with a file so we can test unstage of committed files
     with repo.open_file("committed.txt", "w+") as f:
         f.write("committed content\n")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 

@@ -36,7 +36,7 @@ def test_case(new_lore_repo):
     with repo.open_file(other_file, "w+b") as output_file:
         output_file.write(os.urandom(12345))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
     repo.push()
 
@@ -55,10 +55,10 @@ def test_case(new_lore_repo):
 
     # This should fail as we don't specify the case handling
     with pytest.raises(CaseMismatch):
-        repo.stage()
+        repo.stage(scan=True)
 
     # Specify rename to update the repository
-    repo.stage(case="rename")
+    repo.stage(scan=True, case="rename")
     repo.commit()
     repo.push()
 
@@ -157,10 +157,10 @@ def test_case_directory_rename(new_lore_repo):
 
     # Staging without a case flag should fail
     with pytest.raises(CaseMismatch):
-        repo.stage()
+        repo.stage(scan=True)
 
     # Rename: update the repository to match the file system casing
-    repo.stage(case="rename")
+    repo.stage(scan=True, case="rename")
 
     # Check the status during the staging
     verify_operations_in_status(
@@ -222,7 +222,7 @@ def test_case_directory_keep(new_lore_repo):
     with repo.open_file(audio_file, "w+b") as f:
         f.write(os.urandom(5678))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
     repo.push()
 
@@ -234,10 +234,10 @@ def test_case_directory_keep(new_lore_repo):
 
     # Staging without a case flag should fail
     with pytest.raises(CaseMismatch):
-        repo.stage()
+        repo.stage(scan=True)
 
     # Keep: preserve the repository casing, rename the file system back
-    repo.stage(case="keep")
+    repo.stage(scan=True, case="keep")
 
     # The directory on disk should have been renamed back to match the repository
     files = os.listdir(repo.path)
@@ -269,7 +269,7 @@ def test_case_keep(new_lore_repo):
     with repo.open_file(original_name, "w+b") as f:
         f.write(os.urandom(1234))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
     repo.push()
 
@@ -281,10 +281,10 @@ def test_case_keep(new_lore_repo):
 
     # Staging without a case flag should fail
     with pytest.raises(CaseMismatch):
-        repo.stage()
+        repo.stage(scan=True)
 
     # Stage with keep: should accept the content change but preserve repository casing
-    repo.stage(case="keep")
+    repo.stage(scan=True, case="keep")
 
     # The file on disk should have been renamed back to match the repository
     files = os.listdir(repo.path)
@@ -318,7 +318,7 @@ def test_case_directory_unification_keep(new_lore_repo):
     with repo.open_file(file_a, "w+b") as f:
         f.write(os.urandom(1111))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
     repo.push()
 
@@ -335,10 +335,10 @@ def test_case_directory_unification_keep(new_lore_repo):
 
     # Staging without case flag should fail
     with pytest.raises(CaseMismatch):
-        repo.stage()
+        repo.stage(scan=True)
 
     # Keep: unify under the repository casing (Assets), merging contents
-    repo.stage(case="keep")
+    repo.stage(scan=True, case="keep")
 
     # Only the original casing should remain on disk
     entries = os.listdir(repo.path)
@@ -379,7 +379,7 @@ def test_case_directory_unification_rename(new_lore_repo):
     with repo.open_file(file_a, "w+b") as f:
         f.write(os.urandom(3333))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
     repo.push()
 
@@ -404,11 +404,11 @@ def test_case_directory_unification_rename(new_lore_repo):
 
     # Staging without case flag should fail
     with pytest.raises(CaseMismatch):
-        repo.stage()
+        repo.stage(scan=True)
 
     # Rename: unify under the last alphabetically non-matching variant (assets),
     # merging contents on disk
-    repo.stage(case="rename")
+    repo.stage(scan=True, case="rename")
 
     # Only the winning variant should remain on disk
     entries = os.listdir(repo.path)
@@ -463,7 +463,7 @@ def test_case_file_variant_conflict(new_lore_repo):
     with repo.open_file("readme.txt", "w+b") as f:
         f.write(os.urandom(1234))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
     repo.push()
 
@@ -477,15 +477,15 @@ def test_case_file_variant_conflict(new_lore_repo):
 
     # Staging without case flag should fail with mismatch
     with pytest.raises(CaseMismatch):
-        repo.stage()
+        repo.stage(scan=True)
 
     # Staging with rename should also fail because we cannot silently pick one file
     with pytest.raises(CaseVariantConflict):
-        repo.stage(case="rename")
+        repo.stage(scan=True, case="rename")
 
     # Staging with keep should also fail
     with pytest.raises(CaseVariantConflict):
-        repo.stage(case="keep")
+        repo.stage(scan=True, case="keep")
 
 
 @pytest.mark.smoke
@@ -503,7 +503,7 @@ def test_case_mixed_file_directory_variant_conflict(new_lore_repo):
     with repo.open_file(dir_file, "w+b") as f:
         f.write(os.urandom(1234))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
     repo.push()
 
@@ -517,11 +517,11 @@ def test_case_mixed_file_directory_variant_conflict(new_lore_repo):
 
     # Staging with rename should fail — cannot unify a file and directory
     with pytest.raises(CaseVariantConflict):
-        repo.stage(case="rename")
+        repo.stage(scan=True, case="rename")
 
     # Staging with keep should also fail
     with pytest.raises(CaseVariantConflict):
-        repo.stage(case="keep")
+        repo.stage(scan=True, case="keep")
 
 
 @pytest.mark.smoke
@@ -541,7 +541,7 @@ def test_case_directory_unification_keep_no_match(new_lore_repo):
     with repo.open_file(file_a, "w+b") as f:
         f.write(os.urandom(4567))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
     repo.push()
 
@@ -568,7 +568,7 @@ def test_case_directory_unification_keep_no_match(new_lore_repo):
     assert not os.path.exists(os.path.join(repo.path, dir_name))
 
     # Keep: should unify all variants under the repository casing "Content"
-    repo.stage(case="keep")
+    repo.stage(scan=True, case="keep")
 
     entries = os.listdir(repo.path)
     assert dir_name in entries, "Repository casing 'Content' not restored on disk"

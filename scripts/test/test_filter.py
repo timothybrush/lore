@@ -51,7 +51,7 @@ def test_filter(new_lore_repo):
     assert not "~base" in output, f"Expected `~base` file to be ignored."
     assert not "~loretemp" in output, f"Expected `~loretemp` file to be ignored."
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.branch_push()
 
@@ -66,7 +66,7 @@ def test_filter(new_lore_repo):
         with repo.open_file(path, "w+b") as output_file:
             output_file.write(os.urandom(256))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.branch_push()
 

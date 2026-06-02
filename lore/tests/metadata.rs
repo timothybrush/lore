@@ -236,6 +236,7 @@ mod tests {
         let args = LoreFileStageArgs {
             paths,
             case_change: 0,
+            scan: 1,
         };
         let result = lore::file::stage(globals.clone(), args, None).await;
         assert_eq!(result, 0, "Failed to stage file");

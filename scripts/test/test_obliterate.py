@@ -38,7 +38,7 @@ def test_obliterate(new_lore_repo, tmp_path_factory):
     shutil.copy(os.path.join(repo.path, multi_fragment_file), multi_fragment_file_backup)
 
     # Stage the files
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     # Commit the files
     repo.commit(offline=True)
@@ -89,7 +89,7 @@ def test_obliterate(new_lore_repo, tmp_path_factory):
     shutil.copy(multi_fragment_file_backup, os.path.join(repo.path, multi_fragment_file))
 
     # Stage the files
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     # Commit the files
     repo.commit(offline=True)

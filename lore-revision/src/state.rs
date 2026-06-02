@@ -2195,6 +2195,45 @@ impl State {
         Ok(has_dirty)
     }
 
+    /// Collect paths of all dirty file nodes under a subtree.
+    ///
+    /// Walks the state tree from `root_node`, recursing into dirty directories,
+    /// and returns the relative paths of all dirty file (leaf) nodes.
+    pub async fn collect_dirty_paths(
+        &self,
+        repository: Arc<RepositoryContext>,
+        root_node: NodeID,
+        base_path: RelativePathBuf,
+    ) -> Result<Vec<RelativePathBuf>, StateError> {
+        let mut result = Vec::new();
+        let mut stack: Vec<(NodeID, RelativePathBuf)> = vec![(root_node, base_path)];
+
+        while let Some((node_id, path)) = stack.pop() {
+            let children = self
+                .node_children(repository.clone(), node_id)
+                .await
+                .internal("Failed to get children for dirty path collection")?;
+
+            for &child_id in &children {
+                let child = self.node(repository.clone(), child_id).await?;
+                if !child.is_dirty() {
+                    continue;
+                }
+
+                let name = self.node_name_clone(repository.clone(), child_id).await?;
+                let child_path = path.clone().join(&name);
+
+                if child.is_file() {
+                    result.push(child_path);
+                } else if child.is_directory() {
+                    stack.push((child_id, child_path));
+                }
+            }
+        }
+
+        Ok(result)
+    }
+
     pub async fn find_subnode(
         &self,
         repository: Arc<RepositoryContext>,

@@ -46,7 +46,7 @@ def create_files(repo: Lore, paths: list[str]):
     for path in paths:
         with repo.open_file(path, "w+") as f:
             f.write(f"// {path}\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Add test files", offline=True)
 
 
@@ -414,7 +414,7 @@ def test_dependency_list_at_revision(new_lore_repo):
             repo.make_dirs(d)
         with repo.open_file(path, "w+") as f:
             f.write(f"// {path}\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.file_dependency_add(
         "src/main.rs", "src/lib.rs", json=True, offline=True
     )
@@ -423,7 +423,7 @@ def test_dependency_list_at_revision(new_lore_repo):
     # Revision 2: add main.rs -> util.rs dependency (touch file to have a stageable change)
     with repo.open_file("src/main.rs", "w") as f:
         f.write("// src/main.rs v2\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.file_dependency_add(
         "src/main.rs", "src/util.rs", json=True, offline=True
     )

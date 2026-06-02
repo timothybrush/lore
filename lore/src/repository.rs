@@ -817,7 +817,19 @@ async fn list_local(
 pub struct LoreRepositoryStatusArgs {
     /// Include staged or not
     pub staged: u8,
-    /// Scan filesystem for changes and set/clear dirty flags
+    /// Reconcile against the filesystem and refresh dirty tracking.
+    ///
+    /// When `0` (default), status reports the currently tracked state: the
+    /// staged revision (if any) plus any files and directories already
+    /// marked dirty. No filesystem reads are performed beyond the existing
+    /// dirty flags — clean or unmarked files on disk are not inspected even
+    /// if they differ from the current revision.
+    ///
+    /// When `1`, the filesystem is walked under each requested path, every
+    /// file is reconciled against the current revision, and dirty flags are
+    /// set or cleared accordingly. The refreshed flags are persisted in the
+    /// staged state so subsequent operations (commit, stage, status) see an
+    /// accurate picture without rescanning.
     pub scan: u8,
     /// Reset the current tracked state before computing current status
     pub reset: u8,
@@ -829,7 +841,20 @@ pub struct LoreRepositoryStatusArgs {
     pub paths: LoreArray<LoreString>,
 }
 
-/// Reports the working directory status, including staged changes, dirty changes, and sync point.
+/// Reports the working directory status.
+///
+/// By default this lists the currently tracked state: the staged revision (if
+/// any) plus all files and directories marked dirty in the repository. Dirty
+/// flags are maintained by prior `lore dirty`, `lore stage`, or `lore status
+/// --scan` operations, and by filesystem notifications — files modified
+/// externally without going through any of those will not appear until the
+/// next reconciliation.
+///
+/// Set [`scan`](LoreRepositoryStatusArgs::scan) to walk the filesystem under
+/// each requested path, reconcile every file against the current revision,
+/// and update the persisted dirty flags. Use this to recover from drift
+/// between the on-disk tree and the tracked dirty state (for example after
+/// external edits that bypassed notifications).
 ///
 /// # Events
 ///

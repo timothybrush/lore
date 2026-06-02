@@ -27,7 +27,7 @@ def test_lock_branch(new_lore_repo):
     with repo.open_file(repo.ignore_file(), "w") as output_file:
         output_file.writelines("ignore.txt")
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 

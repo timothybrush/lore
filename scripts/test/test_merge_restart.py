@@ -30,7 +30,7 @@ def test_merge_restart(new_lore_repo, tmp_path_factory):
         output_file.writelines(["This is the second file.\n"])
 
     # Stage and commit second example file
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
 
     # Create binary example file
@@ -39,7 +39,7 @@ def test_merge_restart(new_lore_repo, tmp_path_factory):
         output_file.write(main_binary)
 
     # Stage and commit binary example file
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
 
     # Push all the commits from main
@@ -64,7 +64,7 @@ def test_merge_restart(new_lore_repo, tmp_path_factory):
         output_file.write(branch_binary)
 
     # Stage commit and push the changes on the branch
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("branch one")
     repo.push()
 
@@ -82,7 +82,7 @@ def test_merge_restart(new_lore_repo, tmp_path_factory):
         output_file.write(main_confict_binary)
 
     # Stage commit and push the conflicts
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 

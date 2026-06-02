@@ -25,7 +25,7 @@ def test_status(new_lore_repo):
             ) as output_file:
                 output_file.write(os.urandom(i + j + 30))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.repository_verify()
 
@@ -112,7 +112,7 @@ def test_status(new_lore_repo):
         f"Filtered status --unstaged did not return the expected paths, got {num_unstaged} expected 1"
     )
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
 
     with repo.open_file(status_path, "w+b") as output_file:
@@ -272,13 +272,13 @@ def test_status_revision_only(new_lore_repo):
 
     with repo.open_file("test.txt", "w+b") as f:
         f.write(os.urandom(100))
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
 
     # Create staged and unstaged changes
     with repo.open_file("staged.txt", "w+b") as f:
         f.write(os.urandom(100))
-    repo.stage()
+    repo.stage(scan=True)
     with repo.open_file("unstaged.txt", "w+b") as f:
         f.write(os.urandom(100))
 

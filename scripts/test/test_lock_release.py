@@ -28,7 +28,7 @@ def test_lock_release(new_lore_repo):
     with open(os.path.join(repo.path, repo.ignore_file()), "w") as output_file:
         output_file.writelines("ignore.txt")
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -45,7 +45,7 @@ def test_lock_release(new_lore_repo):
     # Remove file from repository, commit and push
     repo.remove_file("subdir_b/file_b.txt")
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 

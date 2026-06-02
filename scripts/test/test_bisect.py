@@ -27,7 +27,7 @@ def test_bisect(new_lore_repo):
     repo: Lore = new_lore_repo()
 
     def stage_commit_push(repo: Lore, message: str | None = None):
-        repo.stage()
+        repo.stage(scan=True)
         repo.commit(message, local=True)
         repo.push()
 

@@ -60,7 +60,7 @@ def test_commit(new_lore_repo):
         output_file.write(os.urandom(345678901))
 
     # Stage the files
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     # Commit the files
     repo.commit("Test commit", offline=True)
@@ -109,7 +109,7 @@ def test_commit(new_lore_repo):
         output_file.write(os.urandom(100))
 
     # Stage the files
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     # Commit the files
     repo.commit("Test commit 2", offline=True)
@@ -202,7 +202,7 @@ def test_commit(new_lore_repo):
     assert "A second/path" in output, "Missing file in unstaged status: second"
 
     # Commit the files
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Test commit 3", offline=True)
 
     output = repo.status(["first", "second"], offline=True)

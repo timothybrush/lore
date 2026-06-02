@@ -1269,6 +1269,7 @@ class Lore:
         paths: str | list[str] | Path | list[Path] | None = None,
         case: str | None = None,
         targets: str | None = None,
+        scan: bool = False,
         **kwargs: Unpack[GlobalOptions],
     ):
         paths = self._fix_paths(paths)
@@ -1276,7 +1277,8 @@ class Lore:
             ["file", "stage"]
             + paths
             + (["--case", case] if case else [])
-            + (["--targets", targets] if targets else []),
+            + (["--targets", targets] if targets else [])
+            + (["--scan"] if scan else []),
             **kwargs,
         )
 
@@ -1778,6 +1780,7 @@ class Lore:
         paths: str | list[str] | Path | list[Path] | None = None,
         case: str | None = None,
         targets: str | None = None,
+        scan: bool = False,
         **kwargs: Unpack[GlobalOptions],
     ):
         paths = self._fix_paths(paths)
@@ -1785,7 +1788,8 @@ class Lore:
             ["stage"]
             + paths
             + (["--case", case] if case else [])
-            + (["--targets", targets] if targets else []),
+            + (["--targets", targets] if targets else [])
+            + (["--scan"] if scan else []),
             **kwargs,
         )
 

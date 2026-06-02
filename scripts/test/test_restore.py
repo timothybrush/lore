@@ -25,7 +25,7 @@ def test_restore(new_lore_repo):
         output_file.write(os.urandom(4096))
 
     # Stage the files
-    repo.stage()
+    repo.stage(scan=True)
 
     # Commit the files
     repo.commit("Initial snapshot - add text & binary files")
@@ -34,7 +34,7 @@ def test_restore(new_lore_repo):
     with repo.open_file(binary_file, "w+b") as output_file:
         output_file.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Snapshot 2 - modify binary file")
 
     # Modify a file
@@ -43,13 +43,13 @@ def test_restore(new_lore_repo):
             ["One line\n", "Another line\n", "Third line\n", "Fourth line\n"]
         )
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Snapshot 3 - modify text file")
     repo.push()
 
     repo.remove_file(text_file)
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Snapshot 4 - delete text file")
     repo.push()
 
@@ -61,7 +61,7 @@ def test_restore(new_lore_repo):
         output_file.write(os.urandom(1100))
 
     # Stage the files
-    clone.stage()
+    clone.stage(scan=True)
     clone.commit("Snapshot 5 - modify clone binary file")
     clone.push()
 
@@ -139,7 +139,7 @@ def test_restore(new_lore_repo):
                     else:
                         output_file.write(os.urandom(10))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Generated files")
     repo.push()
 

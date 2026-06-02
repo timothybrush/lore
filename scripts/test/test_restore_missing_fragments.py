@@ -16,13 +16,13 @@ def test_restore_missing_fragments(new_lore_repo):
     with repo.open_file(test_file, "w+") as output_file:
         output_file.writelines(["One line\n", "Another line\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
     repo.remove_file(test_file)
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -32,7 +32,7 @@ def test_restore_missing_fragments(new_lore_repo):
     with clone1.open_file(test_file, "w+") as output_file:
         output_file.writelines(["One line\n", "Another line\n"])
 
-    clone1.stage()
+    clone1.stage(scan=True)
     clone1.commit()
     clone1.push()
 

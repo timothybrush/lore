@@ -27,7 +27,7 @@ def test_merge(new_lore_repo):
         )
 
     # Stage the example file
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     # Commit the example file
     repo.commit("Required commit on the main branch", offline=True)
@@ -45,7 +45,7 @@ def test_merge(new_lore_repo):
             self.result_merge = ""
 
         def try_stage(self):
-            repo.file_stage(offline=True)
+            repo.file_stage(scan=True, offline=True)
             return True
 
         def try_commit(self, message):
@@ -1046,7 +1046,7 @@ def test_merge_resolver(new_lore_repo):
     with repo.open_file("merge.txt", "w+b") as output_file:
         output_file.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -1061,7 +1061,7 @@ def test_merge_resolver(new_lore_repo):
     ) as output_file:
         output_file.write(os.urandom(12345))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Feature branch change")
     repo.push()
 
@@ -1073,7 +1073,7 @@ def test_merge_resolver(new_lore_repo):
     with repo.open_file("merge.txt", "w+b") as output_file:
         output_file.write(os.urandom(3000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Main branch change")
     repo.push()
     repo.branch_switch("feature-branch")
@@ -1081,7 +1081,7 @@ def test_merge_resolver(new_lore_repo):
     with repo.open_file("another.txt", "w+b") as output_file:
         output_file.write(os.urandom(4000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Main branch change")
     repo.push()
     repo.branch_merge("main")
@@ -1100,7 +1100,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     with repo.open_file("base.txt", "w+b") as output_file:
         output_file.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Import")
     repo.push()
     repo.branch_create("branch-1")
@@ -1110,7 +1110,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     with repo.open_file(os.path.join(directory_path, "merge.txt"), "w+b") as output_file:
         output_file.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Add in branch-1")
     repo.push()
     repo.branch_switch("main")
@@ -1121,7 +1121,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     with repo.open_file(os.path.join(directory_path, "merge.txt"), "w+b") as output_file:
         output_file.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Add in branch-2")
     repo.push()
     repo.branch_switch("main")
@@ -1142,7 +1142,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     with repo.open_file(os.path.join(directory_path, "file.txt"), "w+b") as output_file:
         output_file.write(os.urandom(1000))
 
-    repo.stage(directory_path)
+    repo.stage(scan=True)
     repo.commit("First stacked branch")
     repo.push()
 
@@ -1154,7 +1154,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     ) as output_file:
         output_file.write(os.urandom(1200))
 
-    repo.stage(directory_path)
+    repo.stage(scan=True)
     repo.commit("Second stacked branch")
     repo.push()
 
@@ -1185,7 +1185,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     with repo.open_file(os.path.join(directory_path, "file.txt"), "w+b") as output_file:
         output_file.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Create file for multi merge")
     repo.push()
 
@@ -1194,7 +1194,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     ) as output_file:
         output_file.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Create another file for multi merge")
     repo.push()
 
@@ -1206,7 +1206,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     ) as output_file:
         output_file.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Modify second file in branch")
     repo.push()
 
@@ -1215,7 +1215,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     with repo.open_file(os.path.join(directory_path, "third.txt"), "w+b") as output_file:
         output_file.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Create a third file for multi merge")
     repo.push()
 
@@ -1232,7 +1232,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     with repo.open_file(os.path.join(directory_path, "file.txt"), "w+b") as output_file:
         output_file.write(os.urandom(1100))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Modify first file for multi merge")
     repo.push()
 
@@ -1267,7 +1267,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     ) as output_file:
         output_file.write(os.urandom(1100))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Modify second file in main branch")
 
     with repo.open_file(os.path.join(directory_path, "file.txt"), "w+b") as output_file:
@@ -1278,7 +1278,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     ) as output_file:
         output_file.write(os.urandom(1100))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Modify first file again and add a fourth file in main branch")
     repo.push()
 
@@ -1298,7 +1298,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     os.chmod(os.path.join(repo.path, directory_path, "fourth.txt"), stat.S_IWRITE)
     repo.remove_file(os.path.join(directory_path, "fourth.txt"))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Remove fourth file in multi merge branch")
     repo.push()
 
@@ -1320,7 +1320,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     with repo.open_file(os.path.join(directory_path, "fifth.txt"), "w+b") as output_file:
         output_file.write(os.urandom(1200))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Restore and add files on multi merge branch")
     repo.push()
 
@@ -1334,7 +1334,7 @@ def test_merge_conflicting_directories(new_lore_repo):
     ) as output_file:
         output_file.write(os.urandom(1100))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Modify second file again on main")
     repo.push()
 
@@ -1358,14 +1358,14 @@ def test_merge_conflicting_directories(new_lore_repo):
                 ) as output_file:
                     output_file.write(os.urandom(10))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Generate files")
     repo.push()
     for i in range(10):
         subpath = str(i)
         shutil.rmtree(os.path.join(repo.path, subpath), ignore_errors=True)
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Delete files")
     repo.push()
     repo.branch_switch("main")
@@ -1391,7 +1391,7 @@ def test_merge_deleted_files(new_lore_repo):
     ) as output_file:
         output_file.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Import")
     repo.push()
 
@@ -1401,7 +1401,7 @@ def test_merge_deleted_files(new_lore_repo):
         output_file.write(os.urandom(2000))
     repo.remove_file(os.path.join(directory_path, "file.three"))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Modify and delete")
     repo.push()
 

@@ -29,7 +29,7 @@ def test_revision_list(new_lore_repo):
             output_file.writelines([f"Line {i}\n"])
 
         # Stage the files
-        repo.stage()
+        repo.stage(scan=True)
 
         # Commit offline
         repo.commit(offline=True)

@@ -30,7 +30,7 @@ def setup_repo_with_deps(repo, files, deps, tag_deps=None):
     make stage/commit happy).
     """
     write_files(repo, files)
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Add files", offline=True)
 
     for source, targets in (deps or {}).items():
@@ -42,7 +42,7 @@ def setup_repo_with_deps(repo, files, deps, tag_deps=None):
     if deps or tag_deps:
         with repo.open_file(".deps_marker", "w+") as f:
             f.write("deps")
-        repo.stage(offline=True)
+        repo.stage(scan=True, offline=True)
         repo.commit("Add dependencies", offline=True)
 
     repo.push()
@@ -76,7 +76,7 @@ def test_sync_deps_filters_changes(new_lore_repo):
         f.write("util v2\n")
     with repo.open_file("assets/texture.png", "w") as f:
         f.write("texture v2\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Update all files", offline=True)
     repo.push()
 
@@ -116,7 +116,7 @@ def test_sync_deps_recursive(new_lore_repo):
         f.write("deep v2\n")
     with repo.open_file("src/unrelated.rs", "w") as f:
         f.write("unrelated v2\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Update all", offline=True)
     repo.push()
 
@@ -156,7 +156,7 @@ def test_sync_deps_tag_filter(new_lore_repo):
         f.write("lib v2\n")
     with repo.open_file("assets/texture.png", "w") as f:
         f.write("texture v2\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Update all", offline=True)
     repo.push()
 
@@ -188,7 +188,7 @@ def test_sync_deps_no_root_files_syncs_all(new_lore_repo):
         f.write("lib v2\n")
     with repo.open_file("assets/texture.png", "w") as f:
         f.write("texture v2\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Update all", offline=True)
     repo.push()
 

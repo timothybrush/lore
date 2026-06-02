@@ -30,7 +30,7 @@ def test_deduplicate(new_lore_repo):
             line = "".join(random.choices(alphabet, k=100))
             output_file.writelines([line])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Test commit 1")
     repo.push()
 
@@ -42,7 +42,7 @@ def test_deduplicate(new_lore_repo):
     repo.copy2(test_file, target_file, to_repo=repo2)
     repo2.environment_vars["LORE_COMPRESSION_LEVEL"] = "4"
 
-    repo2.stage()
+    repo2.stage(scan=True)
     repo2.commit("Test commit 2")
     repo2.push()
 
@@ -51,7 +51,7 @@ def test_deduplicate(new_lore_repo):
     repo.copy2(test_file, target_file, to_repo=repo2)
     repo2.environment_vars["LORE_COMPRESSION_LEVEL"] = "1"
 
-    repo2.stage()
+    repo2.stage(scan=True)
     repo2.commit("Test commit 3", offline=True)
     repo2.push()
 

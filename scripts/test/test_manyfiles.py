@@ -48,7 +48,7 @@ def test_file(new_lore_repo, lore_executable_path):
     # Add a copy for deduplication
     repo.copy_file(large_file_path, os.path.join("large", "file", "test2.png"))
 
-    repo.stage()
+    repo.stage(scan=True)
 
     # Commit the files with a low file count limit to slow it down, then kill
     # the commit mid-flight to exercise the server's behavior when a QUIC
@@ -146,7 +146,7 @@ def test_file(new_lore_repo, lore_executable_path):
         path = os.path.join(str(int(dirint / 10)), str(int(dirint % 10)))
         shutil.rmtree(os.path.join(repo.path, path), ignore_errors=True)
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Delete commit")
     repo.repository_verify()
     repo.push()

@@ -75,7 +75,7 @@ def test_push_missing_fragments(new_lore_repo, missing_fragments_remote_url):
     with repo.open_file(large_file, "w+b") as output_file:
         output_file.write(b"\xaa" * (1024 * 1024))
 
-    repo.stage()
+    repo.stage(scan=True)
 
     # Commit the files, the server should be configured to not write to disk for
     # this test, which should result in the subsequent push failing.
@@ -95,7 +95,7 @@ def test_push_missing_fragments(new_lore_repo, missing_fragments_remote_url):
     with repo.open_file(text_file, "w+", encoding="utf-8") as output_file:
         output_file.writelines(["One line\n", "Another line\n", "Third line\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 

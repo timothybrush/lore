@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define LORE_INTERFACE_VERSION "0.8.1-nightly"
+#define LORE_INTERFACE_VERSION "0.8.2-nightly"
 
 typedef enum lore_log_level_t {
   LORE_LOG_LEVEL_NONE = 0,
@@ -2416,6 +2416,16 @@ typedef struct lore_file_stage_args_t {
   struct lore_string_array_t paths;
   // Case change handling, 0 = error, 1 = update filesystem (keep), 2 = update repository (rename)
   uint32_t case_change;
+  // Force a recursive filesystem scan for directory paths.
+  //
+  // Has no effect on individual file paths — those are always reconciled
+  // against the filesystem regardless of this flag.
+  //
+  // When `0` (default), directory paths stage only the files and child
+  // directories currently marked dirty in the repository state. When `1`,
+  // directory paths are walked recursively on the filesystem and every
+  // file is reconciled, ignoring the dirty flags.
+  uint8_t scan;
 } lore_file_stage_args_t;
 
 typedef struct lore_file_stage_merge_args_t {
@@ -2689,7 +2699,19 @@ typedef struct lore_repository_list_args_t {
 typedef struct lore_repository_status_args_t {
   // Include staged or not
   uint8_t staged;
-  // Scan filesystem for changes and set/clear dirty flags
+  // Reconcile against the filesystem and refresh dirty tracking.
+  //
+  // When `0` (default), status reports the currently tracked state: the
+  // staged revision (if any) plus any files and directories already
+  // marked dirty. No filesystem reads are performed beyond the existing
+  // dirty flags — clean or unmarked files on disk are not inspected even
+  // if they differ from the current revision.
+  //
+  // When `1`, the filesystem is walked under each requested path, every
+  // file is reconciled against the current revision, and dirty flags are
+  // set or cleared accordingly. The refreshed flags are persisted in the
+  // staged state so subsequent operations (commit, stage, status) see an
+  // accurate picture without rescanning.
   uint8_t scan;
   // Reset the current tracked state before computing current status
   uint8_t reset;

@@ -31,7 +31,7 @@ def create_test_repo(repo: Lore):
             repo.make_dirs(dirname)
         with repo.open_file(path, "w+b") as f:
             f.write(content)
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Initial commit", offline=True)
     repo.push()
 
@@ -218,7 +218,7 @@ def test_commit_progress_events(new_lore_repo):
             repo.make_dirs(dirname)
         with repo.open_file(path, "w+b") as f:
             f.write(content)
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     # Commit with JSON output
     output = repo.commit("Test commit", offline=True, json=True)
@@ -301,7 +301,7 @@ def test_sync_progress_events(new_lore_repo):
     for path, content in extra_files.items():
         with source.open_file(path, "w+b") as f:
             f.write(content)
-    source.stage(offline=True)
+    source.stage(scan=True, offline=True)
     source.commit("Add extra files", offline=True)
     source.push()
 
@@ -385,7 +385,7 @@ def test_push_progress_events(new_lore_repo):
             repo.make_dirs(dirname)
         with repo.open_file(path, "w+b") as f:
             f.write(content)
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Test commit for push")
 
     # Push with JSON output
@@ -468,7 +468,7 @@ def generate_large_repo_files(repo: Lore):
 def create_large_test_repo(repo: Lore):
     """Generate large files, stage, commit, and push."""
     generate_large_repo_files(repo)
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial large commit")
     repo.push()
 
@@ -481,7 +481,7 @@ def test_large_commit_progress_events(new_lore_repo):
     """Commit progress for 10k x 10 000 byte files reports correct counts and monotonic progress."""
     repo: Lore = new_lore_repo()
     generate_large_repo_files(repo)
-    repo.stage()
+    repo.stage(scan=True)
 
     output = repo.commit("Large commit", json=True)
 
@@ -556,7 +556,7 @@ def test_large_push_progress_events(new_lore_repo):
     """Push progress for a large repo after commit. Commit uploads content so push is metadata-heavy."""
     repo: Lore = new_lore_repo()
     generate_large_repo_files(repo)
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Large commit for push")
 
     output = repo.push(json=True)
@@ -707,7 +707,7 @@ def test_large_sync_progress_events(new_lore_repo):
         file_path = os.path.join(extra_dir, f"sync_{f:04d}.bin")
         with source.open_file(file_path, "w+b") as fh:
             fh.write(os.urandom(extra_size))
-    source.stage()
+    source.stage(scan=True)
     source.commit("Add extra files for sync")
     source.push()
 

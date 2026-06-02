@@ -263,7 +263,7 @@ class TestTopology:
             "21e3d6b49ab8452dd902c263cbfa96c2808d6333fc66e875bef1e6ab68ea2625"
         )
 
-        server_1_repo.stage()
+        server_1_repo.stage(scan=True)
         server_1_repo.commit()
         server_1_repo.push()
 
@@ -288,7 +288,7 @@ class TestTopology:
             "a47d0689fdc3af95baf6aa39061cfcc6a863210cf9f60ed3e488d5969bec47e9"
         )
 
-        server_2_repo.stage()
+        server_2_repo.stage(scan=True)
         server_2_repo.commit()
         server_2_repo.push()
 
@@ -318,7 +318,7 @@ class TestTopology:
             "baf31a57cebec1bb4090203b2b53b0a7c07d3e18e9fa36b66b051d5acb7bf86f"
         )
 
-        server_2_repo.stage()
+        server_2_repo.stage(scan=True)
         server_2_repo.commit()
         server_2_repo.push()
 
@@ -356,7 +356,7 @@ class TestTopology:
             "7c5613a5e4e01b00bd058b61aa3615c3ba73e1a6f84b86d9c2ddfad682bf5c2f"
         )
 
-        server_1_repo.stage()
+        server_1_repo.stage(scan=True)
         server_1_repo.commit()
         server_1_repo.push()
 
@@ -400,7 +400,7 @@ class TestTopology:
         # push a file to server 1
         with server_1_repo.open_file(file_path, "w+") as file:
             file.writelines([common_file_contents])
-        server_1_repo.stage()
+        server_1_repo.stage(scan=True)
         server_1_repo.commit()
         server_1_repo.push()
 
@@ -416,7 +416,7 @@ class TestTopology:
         # via read replica and advise the client to not need to upload the payload again.
         with server_3_repo.open_file(file_path, "w+") as file:
             file.writelines([common_file_contents])
-        server_3_repo.stage()
+        server_3_repo.stage(scan=True)
         server_3_repo.commit()
         server_3_repo.push()
 
@@ -618,7 +618,7 @@ class TestCompositeTopology:
             "d17c7aa6d8a725a35538fc385ea6c90914e009c41043642d8dcf5e5e6092aca1"
         )
 
-        composite_repo.stage()
+        composite_repo.stage(scan=True)
         composite_repo.commit()
         composite_repo.push()
 

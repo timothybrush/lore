@@ -248,6 +248,16 @@ pub struct StageOptions {
     pub file_id: Option<Context>,
     /// Do not stage any child nodes if set (no recursion)
     pub no_children: bool,
+    /// Force a recursive filesystem scan for directory paths.
+    ///
+    /// Has no effect on individual file paths — those are always reconciled
+    /// against the filesystem regardless of this flag.
+    ///
+    /// When `false` (default), directory paths stage only the files and child
+    /// directories currently marked dirty in the repository state. When
+    /// `true`, directory paths are walked recursively on the filesystem and
+    /// every file is reconciled, ignoring the dirty flags.
+    pub scan: bool,
 }
 
 /// Process links that need reserialization after staging operations
@@ -2356,6 +2366,7 @@ pub(crate) async fn stage_from_parent_revision(
             node_flags: final_flags,
             file_id: Some(node_staged.address.context),
             no_children: false,
+            scan: true,
         };
 
         // Check if conflict files exist before any work is done, so we can
@@ -2871,6 +2882,7 @@ pub(crate) async fn stage_link_paths_from_parent_revision(
                 node_flags: final_flags,
                 file_id: Some(node_staged.address.context),
                 no_children: false,
+                scan: true,
             };
 
             // Mirror `stage_from_parent_revision`: realize the chosen

@@ -92,7 +92,7 @@ def test_dirty_modify(new_lore_repo):
     # Create, stage, commit a file
     with repo.open_file("file.txt", "w+") as f:
         f.write("original content\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Modify the file on disk
@@ -118,7 +118,7 @@ def test_dirty_add(new_lore_repo):
     # Create and commit an initial file
     with repo.open_file("base.txt", "w+") as f:
         f.write("base\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Create a new file (not in revision) and mark dirty
@@ -140,7 +140,7 @@ def test_dirty_delete(new_lore_repo):
 
     with repo.open_file("to_delete.txt", "w+") as f:
         f.write("will be deleted\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Delete the file from disk
@@ -167,7 +167,7 @@ def test_dirty_directory(new_lore_repo):
         f.write("aaa\n")
     with repo.open_file(os.path.join("src", "b.txt"), "w+") as f:
         f.write("bbb\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Modify one, delete one, add one
@@ -205,7 +205,7 @@ def test_dirty_move(new_lore_repo):
         f.write("content\n")
     with repo.open_file(os.path.join("dest", "placeholder.txt"), "w+") as f:
         f.write("placeholder\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Move the file on disk
@@ -234,7 +234,7 @@ def test_dirty_copy(new_lore_repo):
 
     with repo.open_file("original.txt", "w+") as f:
         f.write("content\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Mark as dirty copy
@@ -258,7 +258,7 @@ def test_dirty_ignore(new_lore_repo):
 
     with repo.open_file("base.txt", "w+") as f:
         f.write("base\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Mark non-existent file as dirty — should be silently ignored
@@ -282,7 +282,7 @@ def test_stage_preserves_dirty(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Modify and mark dirty
@@ -291,7 +291,7 @@ def test_stage_preserves_dirty(new_lore_repo):
     repo.dirty("file.txt", offline=True)
 
     # Stage the file
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     # Verify both dirty AND staged
     entries = get_status_files(repo)
@@ -308,13 +308,13 @@ def test_unstage_preserves_dirty_when_file_differs(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("modified content longer\n")
     repo.dirty("file.txt", offline=True)
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     # Unstage
     repo.unstage(offline=True)
@@ -336,7 +336,7 @@ def test_unstage_preserves_anchor_when_dirty_remain(new_lore_repo):
         f.write("staged\n")
     with repo.open_file("dirty.txt", "w+") as f:
         f.write("dirty original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Modify both
@@ -368,7 +368,7 @@ def test_reset_clears_dirty(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     with repo.open_file("file.txt", "w+") as f:
@@ -407,7 +407,7 @@ def test_commit_preserves_dirty_only(new_lore_repo):
         f.write("will commit\n")
     with repo.open_file("dirty_only.txt", "w+") as f:
         f.write("stay dirty\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Modify both
@@ -446,13 +446,13 @@ def test_commit_deletes_anchor_when_clean(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("modified\n")
     repo.dirty("file.txt", offline=True)
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # No dirty, no staged — anchor should be gone
@@ -471,7 +471,7 @@ def test_scan_detects_modified_file(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Modify file without calling dirty
@@ -497,7 +497,7 @@ def test_scan_detects_deleted_file(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("content\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     os.remove(os.path.join(repo.path, "file.txt"))
@@ -514,7 +514,7 @@ def test_scan_detects_new_file(new_lore_repo):
 
     with repo.open_file("base.txt", "w+") as f:
         f.write("base\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     with repo.open_file("new_file.txt", "w+") as f:
@@ -543,7 +543,7 @@ def test_scan_detects_new_empty_file(new_lore_repo):
 
     with repo.open_file("base.txt", "w+") as f:
         f.write("base\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Empty file (zero bytes) — hashes to zero address.
@@ -574,7 +574,7 @@ def test_scan_drops_node_when_unstaged_add_deleted(new_lore_repo):
 
     with repo.open_file("base.txt", "w+") as f:
         f.write("base\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     with repo.open_file("empty.txt", "w+"):
@@ -602,7 +602,7 @@ def test_unstaged_alias_works(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     with repo.open_file("file.txt", "w+") as f:
@@ -625,7 +625,7 @@ def test_dirty_stage_unstage_sequence(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     with repo.open_file("file.txt", "w+") as f:
@@ -633,7 +633,7 @@ def test_dirty_stage_unstage_sequence(new_lore_repo):
 
     # dirty → stage → unstage
     repo.dirty("file.txt", offline=True)
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.unstage(offline=True)
 
     # Should still be dirty (file still differs)
@@ -653,7 +653,7 @@ def test_dirty_stage_commit_preserves_other_dirty(new_lore_repo):
         f.write("aaa\n")
     with repo.open_file("b.txt", "w+") as f:
         f.write("bbb\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     with repo.open_file("a.txt", "w+") as f:
@@ -680,7 +680,7 @@ def test_scan_clears_stale_dirty_on_reverted_file(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Modify and mark dirty
@@ -714,7 +714,7 @@ def test_scan_clears_one_dirty_keeps_other(new_lore_repo):
         f.write("original reverted\n")
     with repo.open_file("still_dirty.txt", "w+") as f:
         f.write("original dirty\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Modify both and mark dirty
@@ -749,7 +749,7 @@ def test_scan_after_commit_shows_remaining_dirty(new_lore_repo):
         f.write("committed\n")
     with repo.open_file("remaining.txt", "w+") as f:
         f.write("remaining\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     with repo.open_file("committed.txt", "w+") as f:
@@ -767,11 +767,108 @@ def test_scan_after_commit_shows_remaining_dirty(new_lore_repo):
     assert entry is not None, "remaining.txt should still appear after commit + scan"
     assert entry["flagDirty"] is True
 
+# ===========================================================================
+# Stage from dirty-marked files
+# ===========================================================================
+
+@pytest.mark.smoke
+def test_stage_from_dirty_marks(new_lore_repo):
+    """stage (default) stages dirty-marked files without filesystem walk."""
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("file.txt", "w+") as f:
+        f.write("original\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit(offline=True)
+
+    with repo.open_file("file.txt", "w+") as f:
+        f.write("modified content\n")
+
+    # Mark dirty, then stage (default = from dirty marks)
+    repo.dirty("file.txt", offline=True)
+    repo.stage(scan=True, offline=True)
+
+    entries = get_status_files(repo)
+    entry = find_status_entry(entries, "file.txt")
+    assert entry is not None, "file.txt should be staged"
+    assert entry["flagStaged"] is True
+
+
+@pytest.mark.smoke
+def test_stage_scan_stages_without_dirty(new_lore_repo):
+    """stage --scan stages modified files even without dirty marks."""
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("file.txt", "w+") as f:
+        f.write("original\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit(offline=True)
+
+    with repo.open_file("file.txt", "w+") as f:
+        f.write("modified content\n")
+
+    # Stage with --scan (no dirty mark needed)
+    repo.stage(scan=True, offline=True)
+
+    entries = get_status_files(repo)
+    entry = find_status_entry(entries, "file.txt")
+    assert entry is not None, "file.txt should be staged with --scan"
+    assert entry["flagStaged"] is True
+
+
+@pytest.mark.smoke
+def test_stage_default_only_stages_dirty(new_lore_repo):
+    """stage (default) only stages dirty-marked files, ignores unmarked changes."""
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("dirty.txt", "w+") as f:
+        f.write("original\n")
+    with repo.open_file("unmarked.txt", "w+") as f:
+        f.write("original\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit(offline=True)
+
+    with repo.open_file("dirty.txt", "w+") as f:
+        f.write("modified dirty\n")
+    with repo.open_file("unmarked.txt", "w+") as f:
+        f.write("modified unmarked\n")
+
+    # Only mark one file dirty
+    repo.dirty("dirty.txt", offline=True)
+    repo.stage(offline=True, scan=False)
+
+    entries = get_status_files(repo)
+    dirty_entry = find_status_entry(entries, "dirty.txt")
+    unmarked_entry = find_status_entry(entries, "unmarked.txt")
+    assert dirty_entry is not None, "dirty.txt should be staged"
+    assert dirty_entry["flagStaged"] is True
+    assert unmarked_entry is None, "unmarked.txt should NOT be staged"
+
+
+@pytest.mark.smoke
+def test_stage_single_file_without_dirty(new_lore_repo):
+    """stage <file> works without dirty mark (backward compat, filesystem check)."""
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("file.txt", "w+") as f:
+        f.write("original\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit(offline=True)
+
+    with repo.open_file("file.txt", "w+") as f:
+        f.write("modified content\n")
+
+    # Stage specific file without marking dirty — should still work
+    repo.stage("file.txt", offline=True)
+
+    entries = get_status_files(repo)
+    entry = find_status_entry(entries, "file.txt")
+    assert entry is not None, "file.txt should be staged via direct file path"
+    assert entry["flagStaged"] is True
 
 # ===========================================================================
 # Dirty add in new directories, nonexistent paths, ignored paths
 # ===========================================================================
-
 
 @pytest.mark.smoke
 def test_dirty_add_in_new_directory(new_lore_repo):
@@ -780,7 +877,7 @@ def test_dirty_add_in_new_directory(new_lore_repo):
 
     with repo.open_file("existing.txt", "w+") as f:
         f.write("base\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Create a file in a new directory (not in current revision)
@@ -803,7 +900,7 @@ def test_dirty_nonexistent_path_ignored(new_lore_repo):
 
     with repo.open_file("existing.txt", "w+") as f:
         f.write("base\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Call dirty on a completely nonexistent path
@@ -822,7 +919,7 @@ def test_dirty_ignored_path_skipped(new_lore_repo):
 
     with repo.open_file("base.txt", "w+") as f:
         f.write("base\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Set up ignore rule for some/path/
@@ -870,7 +967,7 @@ def test_commit_excludes_dirty_only_node(new_lore_repo):
     repo.make_dirs("kept_dir")
     with repo.open_file("kept_dir/kept.txt", "w+") as f:
         f.write("kept content here\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Stage a file in a brand-new directory.
@@ -963,7 +1060,7 @@ def test_status_reapplies_ignore_to_dirty_add(new_lore_repo):
 
     with repo.open_file("base.txt", "w+") as f:
         f.write("base\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Create an untracked file two levels deep and mark it dirty.
@@ -1007,7 +1104,7 @@ def test_branch_switch_with_stale_dirty_flag(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Target branch to switch to.
@@ -1032,7 +1129,7 @@ def test_branch_create_with_stale_dirty_flag(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     with repo.open_file("file.txt", "w+") as f:
@@ -1053,13 +1150,13 @@ def test_sync_with_stale_dirty_flag(new_lore_repo):
     # Two commits give sync a target to move toward.
     with repo.open_file("file.txt", "w+") as f:
         f.write("v1\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
     rev_v1 = repo.revision_history(offline=True)[0].signature
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("v2 longer content\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Step back to v1, then mark file dirty against an intermediate modification before reverting on disk.
@@ -1092,7 +1189,7 @@ def test_status_reset_clears_tracked_state(new_lore_repo):
     for name in ("a.txt", "b.txt", "c.txt", "d.txt"):
         with repo.open_file(name, "w+") as f:
             f.write(f"{name} original\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Track two files as dirty
@@ -1145,13 +1242,13 @@ def test_branch_switch_rebases_staged_anchor(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("alice content here\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     repo.branch_create("other", offline=True)
     with repo.open_file("file.txt", "w+") as f:
         f.write("bob content here\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     repo.branch_switch("main", offline=True)
@@ -1174,13 +1271,13 @@ def test_sync_rebases_staged_anchor(new_lore_repo):
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("v1 content\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
     rev_v1 = repo.revision_history(offline=True)[0].signature
 
     with repo.open_file("file.txt", "w+") as f:
         f.write("v2 content longer\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     # Sync back to v1 and scan; file should match v1 with no false modifications.
@@ -1215,7 +1312,7 @@ def test_branch_switch_rebases_only_dirty_files(new_lore_repo):
             "data/config.json": "{}\n",
         }
     )
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     repo.branch_create("feature", offline=True)
@@ -1227,7 +1324,7 @@ def test_branch_switch_rebases_only_dirty_files(new_lore_repo):
         }
     )
     os.remove(repo._fix_path("docs/readme.md"))
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit(offline=True)
 
     repo.write_files(
@@ -1273,4 +1370,745 @@ def test_branch_switch_rebases_only_dirty_files(new_lore_repo):
         assert f.read() == "dirty new file\n"
     assert not os.path.exists(repo._fix_path("app/utils/helper.py")), (
         "Locally deleted file should remain absent after switch"
+    )
+
+
+# ===========================================================================
+# Regression guard for "Discard hierarchy broken" in the scan-cleanup path
+# ===========================================================================
+
+
+@pytest.mark.smoke
+def test_status_scan_partial_revert_with_remaining(new_lore_repo):
+    """`status --scan` over a wide+deep dirty-add tree where half the
+    files in each leaf are removed from disk and half remain. Verifies
+    the cleanup leaves each parent's chain consistent enough that the
+    surviving siblings are still reported as DirtyAdd.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("base", offline=True)
+
+    tops = 10
+    mids = 5
+    leaves = 3
+    files_per_dir = 8
+
+    paths_to_remove = []
+    paths_to_keep = []
+    for t in range(tops):
+        for m in range(mids):
+            for l in range(leaves):
+                sub = os.path.join(f"top{t:02d}", f"mid{m:02d}", f"leaf{l:02d}")
+                repo.make_dirs(sub)
+                for f in range(files_per_dir):
+                    p = os.path.join(sub, f"file{f:02d}.txt")
+                    with repo.open_file(p, "w+") as fh:
+                        fh.write(f"{p}\n")
+                    if f % 2 == 0:
+                        paths_to_remove.append(p)
+                    else:
+                        paths_to_keep.append(p)
+
+    get_status_files(repo, scan=True)
+
+    for p in paths_to_remove:
+        os.remove(os.path.join(repo.path, p))
+
+    # Cleanup scans — first the full tree, then overlapping path args
+    # matching the user's failing invocation shape.
+    get_status_files(repo, scan=True)
+    get_status_files(
+        repo,
+        path=[f"top{t:02d}" for t in range(tops)] + ["."],
+        scan=True,
+    )
+
+    entries = get_status_files(repo, scan=True)
+    by_path = {
+        to_posix(e["path"]): e for e in entries if e.get("type") == "file"
+    }
+
+    for p in paths_to_keep:
+        entry = by_path.get(to_posix(p))
+        assert entry is not None, (
+            f"kept dirty-add {p} should still appear in status"
+        )
+        assert entry.get("flagDirty") is True, (
+            f"kept dirty-add {p} should still be flagDirty, got {entry}"
+        )
+        assert entry.get("flagStaged") is False
+        assert entry.get("action") == "add", (
+            f"kept dirty-add {p} should report action=add, got {entry.get('action')}"
+        )
+
+    for p in paths_to_remove:
+        assert to_posix(p) not in by_path, (
+            f"removed dirty-add {p} should be cleaned up, got {by_path.get(to_posix(p))}"
+        )
+
+
+# ===========================================================================
+# Branch merge with dirty-only tracking
+# ===========================================================================
+
+
+@pytest.mark.smoke
+def test_branch_merge_refuses_with_staged_nodes(new_lore_repo):
+    """`lore branch merge` refuses to start if any actually-staged node
+    exists. Dirty-only tracking is tolerated (see the next test); only
+    the `Staged` flag blocks the merge.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("base", offline=True)
+
+    repo.branch_create("feature", offline=True)
+    with repo.open_file("feature.txt", "w+") as f:
+        f.write("feature content\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("feature commit", offline=True)
+    repo.branch_switch("main", offline=True)
+
+    with repo.open_file("staged.txt", "w+") as f:
+        f.write("staged content\n")
+    repo.stage("staged.txt", offline=True)
+
+    from error_types import LoreException
+
+    with pytest.raises(LoreException) as excinfo:
+        repo.branch_merge("feature", offline=True)
+    assert "Cannot merge with staged state" in str(excinfo.value), (
+        f"merge should refuse on actually-staged nodes, got:\n{excinfo.value}"
+    )
+
+    entry = find_status_entry(get_status_files(repo), "staged.txt")
+    assert entry is not None and entry["flagStaged"] is True, (
+        "staged.txt should remain staged after the rejected merge"
+    )
+
+
+@pytest.mark.smoke
+def test_branch_merge_carries_dirty_through_clean_merge(new_lore_repo):
+    """A dirty-only file pending on the current branch is still reported
+    as pending after a clean `lore branch merge` lands its auto-commit.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base original\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("base", offline=True)
+
+    repo.branch_create("feature", offline=True)
+    with repo.open_file("feature.txt", "w+") as f:
+        f.write("feature content\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("feature commit", offline=True)
+    repo.branch_switch("main", offline=True)
+
+    # Dirty (not staged) modification on main — no overlap with feature
+    # branch's changes, so the merge is clean.
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base locally edited\n")
+    repo.dirty("base.txt", offline=True)
+
+    pre = find_status_entry(get_status_files(repo), "base.txt")
+    assert pre is not None and pre["flagDirty"] is True and pre["flagStaged"] is False
+
+    repo.branch_merge("feature", offline=True)
+
+    # feature.txt got merged onto disk and is now part of the committed
+    # revision — should not appear in status.
+    assert os.path.exists(os.path.join(repo.path, "feature.txt"))
+    entries = get_status_files(repo)
+    assert find_status_entry(entries, "feature.txt") is None, (
+        "feature.txt should be clean after merge"
+    )
+
+    # The carry survived — base.txt is still pending as a dirty modify.
+    post = find_status_entry(entries, "base.txt")
+    assert post is not None, "dirty base.txt should survive the merge"
+    assert post["flagDirty"] is True
+    assert post["flagStaged"] is False
+
+
+@pytest.mark.smoke
+def test_branch_merge_carries_dirty_through_conflict_merge(new_lore_repo):
+    """A dirty-only file unrelated to a merge conflict is still reported
+    as pending after `merge resolve` + `lore commit` finishes the merge.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("base\n")
+    with repo.open_file("untouched.txt", "w+") as f:
+        f.write("untouched\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("base", offline=True)
+
+    repo.branch_create("feature", offline=True)
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("feature\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("feature edits conflict.txt", offline=True)
+    repo.branch_switch("main", offline=True)
+
+    # Make a conflicting change on main and commit it.
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("main\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("main edits conflict.txt", offline=True)
+
+    # Dirty (not staged) modification on a file the merge does not touch.
+    with repo.open_file("untouched.txt", "w+") as f:
+        f.write("locally edited\n")
+    repo.dirty("untouched.txt", offline=True)
+
+    # Merge hits a conflict on conflict.txt — pick "mine" to resolve.
+    merge_output = repo.branch_merge("feature", offline=True)
+    assert "conflicted" in merge_output, (
+        f"expected merge to surface a conflict, got:\n{merge_output}"
+    )
+    repo.branch_merge_resolve_mine("conflict.txt", offline=True)
+    repo.commit("merge resolved", offline=True)
+
+    # After the merge commit, the dirty carry has been replayed.
+    entries = get_status_files(repo)
+    untouched_entry = find_status_entry(entries, "untouched.txt")
+    assert untouched_entry is not None, (
+        "dirty untouched.txt should survive the conflicted merge"
+    )
+    assert untouched_entry["flagDirty"] is True
+    assert untouched_entry["flagStaged"] is False
+    assert find_status_entry(entries, "conflict.txt") is None, (
+        "conflict.txt should be clean after merge resolve + commit"
+    )
+
+
+@pytest.mark.smoke
+def test_branch_merge_abort_clears_dirty_carry(new_lore_repo):
+    """After `merge abort`, the dirty tracking captured at `merge start`
+    is dropped — a subsequent unrelated commit does not re-apply it.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base\n")
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("base\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("base", offline=True)
+
+    repo.branch_create("feature", offline=True)
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("feature\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("feature edit", offline=True)
+    repo.branch_switch("main", offline=True)
+
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("main\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("main edit", offline=True)
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base locally edited\n")
+    repo.dirty("base.txt", offline=True)
+
+    merge_output = repo.branch_merge("feature", offline=True)
+    assert "conflicted" in merge_output, (
+        f"expected merge to surface a conflict, got:\n{merge_output}"
+    )
+    repo.branch_merge_abort(offline=True)
+
+    # After abort the staged anchor and the carry are both gone — the
+    # next clean commit must not replay the carried dirty path.
+    with repo.open_file("staged_post.txt", "w+") as f:
+        f.write("post-abort\n")
+    repo.stage("staged_post.txt", offline=True)
+    repo.commit("post-abort commit", offline=True)
+
+    entries = get_status_files(repo)
+    assert find_status_entry(entries, "staged_post.txt") is None, (
+        "staged_post.txt should be clean after commit"
+    )
+    assert find_status_entry(entries, "base.txt") is None, (
+        "merge abort cleared the carry so base.txt's dirty tracking is gone"
+    )
+
+
+# ===========================================================================
+# Cherry-pick with dirty-only tracking (same merge_carry pattern as branch
+# merge: refuse on actually-staged, forward dirty-only paths)
+# ===========================================================================
+
+
+@pytest.mark.smoke
+def test_cherry_pick_refuses_with_staged_nodes(new_lore_repo):
+    """revision cherry-pick refuses if any actually-staged node exists.
+
+    Same guarantee as branch merge — only the `Staged` flag blocks the
+    operation. Dirty-only markers are forwarded through `merge_carry`.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("base", offline=True)
+
+    repo.branch_create("source", offline=True)
+    with repo.open_file("from_source.txt", "w+") as f:
+        f.write("source content\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("source commit", offline=True)
+    source_rev = repo.revision_history(1, offline=True)[0].signature
+
+    repo.branch_switch("main", offline=True)
+
+    with repo.open_file("staged.txt", "w+") as f:
+        f.write("staged content\n")
+    repo.stage("staged.txt", offline=True)
+
+    from error_types import LoreException
+
+    with pytest.raises(LoreException) as excinfo:
+        repo.revision_cherry_pick(source_rev, offline=True)
+    assert "Cannot merge with staged state" in str(excinfo.value), (
+        f"cherry-pick should refuse on actually-staged nodes, got:\n{excinfo.value}"
+    )
+
+    entry = find_status_entry(get_status_files(repo), "staged.txt")
+    assert entry is not None and entry["flagStaged"] is True, (
+        "staged.txt should remain staged after the rejected cherry-pick"
+    )
+
+
+@pytest.mark.smoke
+def test_cherry_pick_carries_dirty_through_clean_pick(new_lore_repo):
+    """Clean cherry-pick forwards dirty-only tracking onto the resulting
+    commit via the `merge_carry` blob — same pattern as branch merge."""
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base original\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("base", offline=True)
+
+    repo.branch_create("source", offline=True)
+    with repo.open_file("from_source.txt", "w+") as f:
+        f.write("source content\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("source commit", offline=True)
+    source_rev = repo.revision_history(1, offline=True)[0].signature
+
+    repo.branch_switch("main", offline=True)
+
+    # Dirty (not staged) modification on main — doesn't overlap with the
+    # cherry-picked revision so the pick is clean.
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base locally edited\n")
+    repo.dirty("base.txt", offline=True)
+
+    pre = find_status_entry(get_status_files(repo), "base.txt")
+    assert pre is not None and pre["flagDirty"] is True and pre["flagStaged"] is False
+
+    repo.revision_cherry_pick(source_rev, offline=True)
+
+    # from_source.txt should now be in the committed tree and clean.
+    assert os.path.exists(os.path.join(repo.path, "from_source.txt"))
+    entries = get_status_files(repo)
+    assert find_status_entry(entries, "from_source.txt") is None, (
+        "from_source.txt should be clean after cherry-pick"
+    )
+
+    # base.txt still pending as a dirty modify — carry replayed.
+    post = find_status_entry(entries, "base.txt")
+    assert post is not None, "dirty base.txt should survive the cherry-pick"
+    assert post["flagDirty"] is True
+    assert post["flagStaged"] is False
+
+
+@pytest.mark.smoke
+def test_cherry_pick_carries_dirty_through_conflict_pick(new_lore_repo):
+    """Cherry-pick that ends in a conflict still preserves dirty-only
+    tracking — the carry is stored at `cherry-pick start`, the merge
+    state occupies the staged anchor for conflict resolution, and the
+    eventual `lore commit` replays the carry."""
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("base\n")
+    with repo.open_file("untouched.txt", "w+") as f:
+        f.write("untouched\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("base", offline=True)
+
+    repo.branch_create("source", offline=True)
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("source\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("source edits conflict.txt", offline=True)
+    source_rev = repo.revision_history(1, offline=True)[0].signature
+
+    repo.branch_switch("main", offline=True)
+
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("main\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("main edits conflict.txt", offline=True)
+
+    # Dirty (not staged) modification on a file the cherry-pick does not touch.
+    with repo.open_file("untouched.txt", "w+") as f:
+        f.write("locally edited\n")
+    repo.dirty("untouched.txt", offline=True)
+
+    pick_output = repo.revision_cherry_pick(source_rev, offline=True)
+    assert "conflicted" in pick_output, (
+        f"expected cherry-pick to surface a conflict, got:\n{pick_output}"
+    )
+    repo.revision_cherry_pick_resolve_mine("conflict.txt", offline=True)
+    repo.commit("cherry-pick resolved", offline=True)
+
+    entries = get_status_files(repo)
+    untouched_entry = find_status_entry(entries, "untouched.txt")
+    assert untouched_entry is not None, (
+        "dirty untouched.txt should survive the conflicted cherry-pick"
+    )
+    assert untouched_entry["flagDirty"] is True
+    assert untouched_entry["flagStaged"] is False
+    assert find_status_entry(entries, "conflict.txt") is None, (
+        "conflict.txt should be clean after cherry-pick resolve + commit"
+    )
+
+
+@pytest.mark.smoke
+def test_cherry_pick_abort_clears_dirty_carry(new_lore_repo):
+    """`cherry-pick abort` clears the `merge_carry` blob (it delegates
+    to `merge_abort`, which already handles carry cleanup)."""
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base\n")
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("base\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("base", offline=True)
+
+    repo.branch_create("source", offline=True)
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("source\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("source edit", offline=True)
+    source_rev = repo.revision_history(1, offline=True)[0].signature
+
+    repo.branch_switch("main", offline=True)
+    with repo.open_file("conflict.txt", "w+") as f:
+        f.write("main\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("main edit", offline=True)
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base locally edited\n")
+    repo.dirty("base.txt", offline=True)
+
+    pick_output = repo.revision_cherry_pick(source_rev, offline=True)
+    assert "conflicted" in pick_output, (
+        f"expected cherry-pick to surface a conflict, got:\n{pick_output}"
+    )
+    repo.revision_cherry_pick_abort(offline=True)
+
+    # After abort, carry is gone — a subsequent unrelated commit must not
+    # replay the carried path.
+    with repo.open_file("staged_post.txt", "w+") as f:
+        f.write("post-abort\n")
+    repo.stage("staged_post.txt", offline=True)
+    repo.commit("post-abort commit", offline=True)
+
+    entries = get_status_files(repo)
+    assert find_status_entry(entries, "staged_post.txt") is None, (
+        "staged_post.txt should be clean after commit"
+    )
+    assert find_status_entry(entries, "base.txt") is None, (
+        "cherry-pick abort cleared the carry so base.txt's dirty tracking is gone"
+    )
+# ===========================================================================
+# Branch reset with dirty-only tracking
+# ===========================================================================
+
+
+@pytest.mark.smoke
+def test_branch_reset_refuses_with_staged_nodes(new_lore_repo):
+    """`lore branch reset` refuses if any actually-staged node exists.
+    Dirty-only tracking is tolerated (see the next test); only the
+    `Staged` flag blocks the reset.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base v1\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v1", offline=True)
+    rev_v1 = repo.revision_history(1, offline=True)[0].signature
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base v2\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v2", offline=True)
+
+    with repo.open_file("staged.txt", "w+") as f:
+        f.write("staged content\n")
+    repo.stage("staged.txt", offline=True)
+
+    from error_types import LoreException
+
+    with pytest.raises(LoreException) as excinfo:
+        repo.branch_reset(rev_v1, offline=True)
+    assert "Unable to reset branch when there is a staged state" in str(
+        excinfo.value
+    ), f"reset should refuse on actually-staged nodes, got:\n{excinfo.value}"
+
+    entry = find_status_entry(get_status_files(repo), "staged.txt")
+    assert entry is not None and entry["flagStaged"] is True, (
+        "staged.txt should remain staged after the rejected reset"
+    )
+
+
+@pytest.mark.smoke
+def test_branch_reset_carries_dirty_through_same_branch_reset(new_lore_repo):
+    """A dirty-only file pending on the current branch is still reported
+    as pending after `lore branch reset` moves the branch tip to an
+    earlier revision.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base v1\n")
+    with repo.open_file("untouched.txt", "w+") as f:
+        f.write("untouched v1\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v1", offline=True)
+    rev_v1 = repo.revision_history(1, offline=True)[0].signature
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base v2\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v2", offline=True)
+
+    # Dirty (not staged) modification on a file the reset target doesn't
+    # touch — at v1, untouched.txt is "untouched v1", on disk it's the
+    # locally edited version below.
+    with repo.open_file("untouched.txt", "w+") as f:
+        f.write("untouched locally edited\n")
+    repo.dirty("untouched.txt", offline=True)
+
+    pre = find_status_entry(get_status_files(repo), "untouched.txt")
+    assert pre is not None and pre["flagDirty"] is True and pre["flagStaged"] is False
+
+    repo.branch_reset(rev_v1, offline=True)
+
+    with repo.open_file("base.txt", "r") as f:
+        assert f.read() == "base v1\n"
+
+    entries = get_status_files(repo)
+    post = find_status_entry(entries, "untouched.txt")
+    assert post is not None, "dirty untouched.txt should survive the reset"
+    assert post["flagDirty"] is True
+    assert post["flagStaged"] is False
+
+
+# ===========================================================================
+# Revert with dirty-only tracking
+# ===========================================================================
+
+
+@pytest.mark.smoke
+def test_revert_refuses_with_staged_nodes(new_lore_repo):
+    """`lore revision revert` refuses to start if any actually-staged
+    node exists. Dirty-only tracking is tolerated; only the `Staged`
+    flag blocks the operation.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base v1\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v1", offline=True)
+
+    with repo.open_file("revertable.txt", "w+") as f:
+        f.write("added in v2\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v2", offline=True)
+    rev_v2 = repo.revision_history(1, offline=True)[0].signature
+
+    with repo.open_file("staged.txt", "w+") as f:
+        f.write("staged content\n")
+    repo.stage("staged.txt", offline=True)
+
+    from error_types import LoreException
+
+    with pytest.raises(LoreException) as excinfo:
+        repo.revision_revert(rev_v2, offline=True)
+    assert "Cannot merge with staged state" in str(excinfo.value), (
+        f"revert should refuse on actually-staged nodes, got:\n{excinfo.value}"
+    )
+
+    entry = find_status_entry(get_status_files(repo), "staged.txt")
+    assert entry is not None and entry["flagStaged"] is True, (
+        "staged.txt should remain staged after the rejected revert"
+    )
+
+
+@pytest.mark.smoke
+def test_revert_carries_dirty_through_clean_revert(new_lore_repo):
+    """A dirty-only file in a brand-new subdirectory is still reported
+    as pending after a clean `lore revision revert` auto-commits — the
+    carry replay has to recreate the intermediate directory node in the
+    fresh staged state.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base original\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("base", offline=True)
+
+    with repo.open_file("revertable.txt", "w+") as f:
+        f.write("added later\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("add revertable", offline=True)
+    rev_to_revert = repo.revision_history(1, offline=True)[0].signature
+
+    # Dirty add of a new file in a directory that doesn't exist in any
+    # committed revision — the carry must recreate the dir hierarchy.
+    repo.make_dirs("dirty_subdir")
+    with repo.open_file("dirty_subdir/dirty_file.txt", "w+") as f:
+        f.write("new dirty content\n")
+    repo.dirty("dirty_subdir/dirty_file.txt", offline=True)
+
+    pre = find_status_entry(get_status_files(repo), "dirty_subdir/dirty_file.txt")
+    assert pre is not None and pre["flagDirty"] is True and pre["flagStaged"] is False
+
+    repo.revision_revert(rev_to_revert, offline=True)
+
+    # The reverted file is removed from disk and the committed tree.
+    assert not os.path.exists(os.path.join(repo.path, "revertable.txt"))
+    entries = get_status_files(repo)
+    assert find_status_entry(entries, "revertable.txt") is None, (
+        "revertable.txt should be gone from status after revert"
+    )
+
+    post = find_status_entry(entries, "dirty_subdir/dirty_file.txt")
+    assert post is not None, (
+        "dirty dirty_subdir/dirty_file.txt should survive the revert"
+    )
+    assert post["flagDirty"] is True
+    assert post["flagStaged"] is False
+
+
+@pytest.mark.smoke
+def test_revert_carries_dirty_through_conflict_revert(new_lore_repo):
+    """A dirty-only file in a brand-new subdirectory survives a
+    conflicted revert all the way through `revert resolve` + `lore
+    commit` — the carry replay has to recreate the intermediate
+    directory node in the fresh staged state.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("target.txt", "w+") as f:
+        f.write("v1\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v1", offline=True)
+
+    with repo.open_file("target.txt", "w+") as f:
+        f.write("v2\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v2 - to be reverted", offline=True)
+    rev_v2 = repo.revision_history(1, offline=True)[0].signature
+
+    # A further edit to target.txt makes reverting v2 conflict with v3.
+    with repo.open_file("target.txt", "w+") as f:
+        f.write("v3\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v3", offline=True)
+
+    # Dirty add of a new file in a directory that doesn't exist in any
+    # committed revision — the carry must recreate the dir hierarchy.
+    repo.make_dirs("dirty_subdir")
+    with repo.open_file("dirty_subdir/dirty_file.txt", "w+") as f:
+        f.write("new dirty content\n")
+    repo.dirty("dirty_subdir/dirty_file.txt", offline=True)
+
+    revert_output = repo.revision_revert(rev_v2, offline=True)
+    assert "conflicted" in revert_output, (
+        f"expected revert to surface a conflict, got:\n{revert_output}"
+    )
+    repo.revision_revert_resolve_mine("target.txt", offline=True)
+    repo.commit("revert resolved", offline=True)
+
+    entries = get_status_files(repo)
+    dirty_entry = find_status_entry(entries, "dirty_subdir/dirty_file.txt")
+    assert dirty_entry is not None, (
+        "dirty dirty_subdir/dirty_file.txt should survive the conflicted revert"
+    )
+    assert dirty_entry["flagDirty"] is True
+    assert dirty_entry["flagStaged"] is False
+    assert find_status_entry(entries, "target.txt") is None, (
+        "target.txt should be clean after revert resolve + commit"
+    )
+
+
+@pytest.mark.smoke
+def test_revert_abort_clears_dirty_carry(new_lore_repo):
+    """After `revert abort`, the dirty tracking captured at `revert start`
+    is dropped — a subsequent unrelated commit does not re-apply it.
+    """
+    repo: Lore = new_lore_repo()
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base\n")
+    with repo.open_file("target.txt", "w+") as f:
+        f.write("v1\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v1", offline=True)
+
+    with repo.open_file("target.txt", "w+") as f:
+        f.write("v2\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v2", offline=True)
+    rev_v2 = repo.revision_history(1, offline=True)[0].signature
+
+    with repo.open_file("target.txt", "w+") as f:
+        f.write("v3\n")
+    repo.stage(scan=True, offline=True)
+    repo.commit("v3", offline=True)
+
+    with repo.open_file("base.txt", "w+") as f:
+        f.write("base locally edited\n")
+    repo.dirty("base.txt", offline=True)
+
+    revert_output = repo.revision_revert(rev_v2, offline=True)
+    assert "conflicted" in revert_output, (
+        f"expected revert to surface a conflict, got:\n{revert_output}"
+    )
+    repo.revision_revert_abort(offline=True)
+
+    with repo.open_file("staged_post.txt", "w+") as f:
+        f.write("post-abort\n")
+    repo.stage("staged_post.txt", offline=True)
+    repo.commit("post-abort commit", offline=True)
+
+    entries = get_status_files(repo)
+    assert find_status_entry(entries, "staged_post.txt") is None, (
+        "staged_post.txt should be clean after commit"
+    )
+    assert find_status_entry(entries, "base.txt") is None, (
+        "revert abort dropped the dirty tracking captured at revert start"
     )

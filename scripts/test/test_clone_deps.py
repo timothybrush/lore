@@ -31,7 +31,7 @@ def setup_repo_with_deps(repo, files, deps, tag_deps=None):
     make stage/commit happy).
     """
     write_files(repo, files)
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Add files", offline=True)
 
     for source, targets in (deps or {}).items():
@@ -44,7 +44,7 @@ def setup_repo_with_deps(repo, files, deps, tag_deps=None):
         # Touch a marker file to trigger a second commit capturing the dep metadata
         with repo.open_file(".deps_marker", "w+") as f:
             f.write("deps")
-        repo.stage(offline=True)
+        repo.stage(scan=True, offline=True)
         repo.commit("Add dependencies", offline=True)
 
     repo.push()

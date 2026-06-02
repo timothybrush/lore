@@ -115,7 +115,10 @@ mod tests {
                     repository.clone(),
                     &write_token,
                     LoreArray::from_vec(vec![LoreString::from(&path)]),
-                    StageOptions::default(),
+                    StageOptions {
+                        scan: true,
+                        ..StageOptions::default()
+                    },
                 )
                 .await
                 .expect("Failed to stage repository");
@@ -158,7 +161,10 @@ mod tests {
                     repository.clone(),
                     &write_token,
                     LoreArray::from_vec(vec![LoreString::from(&path)]),
-                    StageOptions::default(),
+                    StageOptions {
+                        scan: true,
+                        ..StageOptions::default()
+                    },
                 )
                 .await
                 .expect("Failed to stage repository");
@@ -235,7 +241,10 @@ mod tests {
                     repository.clone(),
                     &write_token,
                     LoreArray::from_vec(vec![LoreString::from(&file_modified_path)]),
-                    StageOptions::default(),
+                    StageOptions {
+                        scan: true,
+                        ..StageOptions::default()
+                    },
                 )
                 .await
                 .expect("Failed to stage repository");

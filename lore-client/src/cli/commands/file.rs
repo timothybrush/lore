@@ -287,6 +287,24 @@ pub struct FileStageArgs {
     #[clap(long, value_name = "case")]
     case: Option<FileStageCase>,
 
+    /// Walk the filesystem under the given paths to detect modified,
+    /// added, and deleted files.
+    ///
+    /// Detected changes are marked dirty and staged in a single pass.
+    /// Use this when changes were made externally (without going
+    /// through `lore dirty`), or to recover after losing track of
+    /// dirty state. Equivalent in effect to running
+    /// `lore status --scan` followed by `lore stage`, but performed
+    /// in one traversal.
+    ///
+    /// Without `--scan`, directory staging stages only files already
+    /// marked dirty under that directory — mark them first with
+    /// `lore dirty <paths>`, or run `lore status --scan` to reconcile
+    /// dirty flags across a tree. Single-file stage paths are always
+    /// checked against the filesystem regardless of this flag.
+    #[clap(long, action)]
+    scan: bool,
+
     #[clap(flatten)]
     paths: FilePathsTargetsArgs,
 
@@ -487,9 +505,31 @@ pub enum FileCommands {
     Metadata(FileMetadataArgs),
     /// Manage file dependencies
     Dependency(FileDependencyArgs),
-    /// Stage changes to a file or directory to be tracked in the repository
+    /// Stage changes for commit.
+    ///
+    /// Directory paths (including `.`) stage only files already marked
+    /// dirty under that directory; clean or unmarked files are
+    /// skipped. Mark files first with `lore file dirty` (or
+    /// `lore status --scan` to reconcile dirty flags in bulk), or
+    /// pass `--scan` here to walk the filesystem and stage in one
+    /// pass.
+    ///
+    /// Specific file paths are checked against the filesystem and
+    /// staged if content differs from the current revision,
+    /// regardless of their dirty flag.
+    ///
+    /// `--scan` walks the filesystem under the given paths, marks
+    /// every detected modification/add/delete dirty, and stages them
+    /// in one step.
     Stage(FileStageArgs),
-    /// Mark files as dirty (filesystem changes detected, not staged)
+    /// Mark files as dirty so they show up in `lore status` and get
+    /// picked up by directory-scoped `lore stage` (no content is read
+    /// or staged).
+    ///
+    /// Use when files were changed externally and you want to notify
+    /// Lore of specific paths without performing a full filesystem
+    /// walk. For bulk reconciliation across a tree, prefer
+    /// `lore status --scan` or `lore stage --scan`.
     Dirty(FileDirtyArgs),
     /// Unstage changes to a file or directory
     Unstage(FileUnstageArgs),
@@ -1083,6 +1123,7 @@ pub fn handle_file_stage(globals: LoreGlobalArgs, args: &FileStageArgs) -> u8 {
         let stage_args = LoreFileStageArgs {
             paths,
             case_change: args.case.clone().unwrap_or_default().to_core_arg(),
+            scan: u8::from(args.scan),
         };
 
         return runtime().block_on(file::stage(globals, stage_args, callback)) as u8;

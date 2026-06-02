@@ -29,7 +29,7 @@ def test_metadata(new_lore_repo):
         )
 
     # Stage the files
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     # Set metadata on text file
     repo.file_metadata_set(

@@ -80,7 +80,7 @@ def test_diff(new_lore_repo):
     repo.remove_file(delete_file)
     repo.remove_dir(os.path.dirname(delete_file))
 
-    repo.stage([third_file, os.path.dirname(delete_file)], offline=True)
+    repo.stage([third_file, os.path.dirname(delete_file)], offline=True, scan=True)
     repo.commit("Test commit 6 on another branch", offline=True)
 
     # Switch back to main and commit a change to a file

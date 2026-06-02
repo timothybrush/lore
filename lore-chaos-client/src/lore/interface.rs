@@ -173,6 +173,7 @@ impl LoreInterface {
             LoreFileStageArgs {
                 paths: files,
                 case_change: 0,
+                scan: 1,
             },
             Some(Box::new(move |event| error_and_log!(span, event))),
         ));

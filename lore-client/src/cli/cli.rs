@@ -211,15 +211,50 @@ pub enum LoreCommands {
     Link(link::LinkArgs),
 
     // Config commands
-    /// Show current repository status
+    /// Show current repository status.
+    ///
+    /// Reports the staged revision (if any) plus the files and
+    /// directories currently marked dirty. By default no filesystem
+    /// walk is performed — only the tracked dirty flags are read, so
+    /// changes made without prior `lore dirty` or `--scan` will not
+    /// appear.
+    ///
+    /// Pass `--scan` to walk the filesystem under the given paths,
+    /// reconcile every file against the current revision, and refresh
+    /// dirty flags (setting them on detected modifications/adds/deletes
+    /// and clearing stale ones). The refreshed flags are persisted so
+    /// subsequent `lore stage` / `lore status` calls see an accurate
+    /// picture without rescanning.
     Status(repository::RepositoryStatusArgs),
 
     /// Clone a remote repository into the given path
     Clone(repository::RepositoryCloneArgs),
 
-    /// Stage changes to a file or directory
+    /// Stage changes for commit.
+    ///
+    /// Directory path (including `.`): stages only files already marked
+    /// dirty under that directory. No filesystem walk is performed;
+    /// clean or unmarked files are skipped. Mark files first with
+    /// `lore dirty` (or `lore status --scan` to reconcile in bulk), or
+    /// pass `--scan` here to discover and stage in one pass.
+    ///
+    /// Specific file path: checked against the filesystem and staged
+    /// if its on-disk content differs from the current revision,
+    /// regardless of its dirty flag.
+    ///
+    /// `--scan`: forces a filesystem walk under the given paths, marks
+    /// modified, added, and deleted files dirty, and stages them in
+    /// one step. Use this when changes were made externally without
+    /// going through `lore dirty`, or to recover after losing track of
+    /// dirty state.
     Stage(file::FileStageArgs),
-    /// Mark files as dirty (filesystem changes detected)
+    /// Mark files as dirty so they show up in `lore status` and get
+    /// picked up by `lore stage` (no content is read or staged).
+    ///
+    /// Use this when your editor or build tool has modified files and
+    /// you want to inform Lore of the change without performing a full
+    /// `--scan`. For bulk reconciliation across a tree, prefer
+    /// `lore status --scan` or `lore stage --scan`.
     Dirty(file::FileDirtyArgs),
     /// Unstage changes to a file or directory
     Unstage(file::FileUnstageArgs),

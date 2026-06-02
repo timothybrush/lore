@@ -24,7 +24,7 @@ def test_verify_fragment_local_hash_and_context(new_lore_repo):
     with repo.open_file(test_file, "w+b") as f:
         f.write(os.urandom(1000))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Test commit", offline=True)
 
     file_info = repo.file_info(test_file, offline=True)[0]
@@ -47,7 +47,7 @@ def test_verify_fragment_local_hash_only(new_lore_repo):
     with repo.open_file(test_file, "w+b") as f:
         f.write(os.urandom(1000))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Test commit", offline=True)
 
     file_info = repo.file_info(test_file, offline=True)[0]
@@ -67,7 +67,7 @@ def test_verify_fragment_local_wrong_context(new_lore_repo):
     with repo.open_file(test_file, "w+b") as f:
         f.write(os.urandom(1000))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Test commit", offline=True)
 
     file_info = repo.file_info(test_file, offline=True)[0]
@@ -91,7 +91,7 @@ def test_verify_fragment_local_nonexistent_hash(new_lore_repo):
     with repo.open_file(test_file, "w+b") as f:
         f.write(os.urandom(1000))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Test commit", offline=True)
 
     fake_hash = "0" * 64  # Valid format but nonexistent
@@ -115,7 +115,7 @@ def test_verify_fragment_remote_hash_and_context(new_lore_repo):
     with repo.open_file(test_file, "w+b") as f:
         f.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Test commit")
     repo.push()
 
@@ -136,7 +136,7 @@ def test_verify_fragment_remote_hash_only(new_lore_repo):
     with repo.open_file(test_file, "w+b") as f:
         f.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Test commit")
     repo.push()
 
@@ -161,7 +161,7 @@ def test_verify_fragment_remote_wrong_context(new_lore_repo):
     with repo.open_file(test_file, "w+b") as f:
         f.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Test commit")
     repo.push()
 
@@ -186,7 +186,7 @@ def test_verify_fragment_remote_nonexistent_hash(new_lore_repo):
     with repo.open_file(test_file, "w+b") as f:
         f.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Test commit")
     repo.push()
 
@@ -210,7 +210,7 @@ def test_verify_fragment_remote_displays_corrupted_status(new_lore_repo):
     with repo.open_file(test_file, "w+b") as f:
         f.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Test commit")
     repo.push()
 
@@ -232,7 +232,7 @@ def test_verify_fragment_remote_with_heal_flag(new_lore_repo):
     with repo.open_file(test_file, "w+b") as f:
         f.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Test commit")
     repo.push()
 
@@ -255,7 +255,7 @@ def test_verify_fragment_local_with_heal_flag(new_lore_repo):
     with repo.open_file(test_file, "w+b") as f:
         f.write(os.urandom(1000))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("Test commit", offline=True)
 
     file_info = repo.file_info(test_file, offline=True)[0]

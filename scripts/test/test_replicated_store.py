@@ -169,7 +169,7 @@ class TestReplicatedStore:
         )
         ensure_fragment_exists_output(False, server_2_output)
 
-        server_1_repo.stage()
+        server_1_repo.stage(scan=True)
         server_1_repo.commit()
         server_1_repo.push()
 
@@ -215,7 +215,7 @@ class TestReplicatedStore:
         file_address = (
             "a47d0689fdc3af95baf6aa39061cfcc6a863210cf9f60ed3e488d5969bec47e9"
         )
-        server_2_repo.stage()
+        server_2_repo.stage(scan=True)
         server_2_repo.commit()
         server_2_repo.push()
 

@@ -34,7 +34,7 @@ def test_urcignore_committed_file(new_lore_repo):
     with repo.open_file(other_file, "w+") as f:
         f.write("hello\n")
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial commit with data.bin and other.txt")
     repo.push()
 
@@ -44,7 +44,7 @@ def test_urcignore_committed_file(new_lore_repo):
     with repo.open_file(other_file, "w+") as f:
         f.write("updated\n")
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Second commit - modify data.bin and other.txt")
     repo.push()
 
@@ -58,7 +58,7 @@ def test_urcignore_committed_file(new_lore_repo):
         f.write("data.bin\n")
 
     # Stage and commit the ignore file itself
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Add ignore file excluding data.bin")
     repo.push()
 
@@ -71,7 +71,7 @@ def test_urcignore_committed_file(new_lore_repo):
     assert "data.bin" not in output, "status should not report ignored file data.bin"
 
     # -- Outbound: stage should skip the ignored file --
-    repo.stage()
+    repo.stage(scan=True)
     output = repo.repository_status()
     assert "data.bin" not in output, (
         "stage should not have staged the ignored file data.bin"
@@ -121,7 +121,7 @@ def test_urcignore_merge_committed_file(new_lore_repo):
     with repo.open_file(committed_file, "w+b") as f:
         f.write(os.urandom(1024))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial commit with data.bin")
     repo.push()
 
@@ -132,7 +132,7 @@ def test_urcignore_merge_committed_file(new_lore_repo):
     with repo.open_file(committed_file, "w+b") as f:
         f.write(os.urandom(2048))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Feature: modify data.bin")
     repo.push()
 
@@ -142,7 +142,7 @@ def test_urcignore_merge_committed_file(new_lore_repo):
     with repo.open_file(repo.ignore_file(), "w+") as f:
         f.write("data.bin\n")
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Add ignore file excluding data.bin")
     repo.push()
 
@@ -177,7 +177,7 @@ def test_urcignore_merge_new_file_from_incoming_branch(new_lore_repo):
     with repo.open_file("readme.txt", "w+") as f:
         f.write("initial\n")
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial commit without artifacts/")
     repo.push()
 
@@ -189,7 +189,7 @@ def test_urcignore_merge_new_file_from_incoming_branch(new_lore_repo):
     with repo.open_file(repo.ignore_file(), "w+") as f:
         f.write("artifacts\n")
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Add ignore file excluding artifacts/")
     repo.push()
 
@@ -200,7 +200,7 @@ def test_urcignore_merge_new_file_from_incoming_branch(new_lore_repo):
     with repo.open_file(committed_file, "w+b") as f:
         f.write(os.urandom(1024))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Feature: add artifacts/data.bin")
     repo.push()
 
@@ -251,7 +251,7 @@ def test_urcignore_branch_switch_preserves_ignored_file(new_lore_repo):
     with repo.open_file("readme.txt", "w+") as f:
         f.write("initial\n")
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial commit with ignore file")
     repo.push()
 
@@ -268,7 +268,7 @@ def test_urcignore_branch_switch_preserves_ignored_file(new_lore_repo):
     with repo.open_file("feature.txt", "w+") as f:
         f.write("feature work\n")
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Feature: add feature.txt")
     repo.push()
 

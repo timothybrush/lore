@@ -49,7 +49,7 @@ def test_layer_add_list_remove(new_lore_repo):
     with repo.open_file("root_repo.txt", mode="w+b") as out:
         out.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -58,7 +58,7 @@ def test_layer_add_list_remove(new_lore_repo):
     with second_repo.open_file(second_file, mode="w+b") as out:
         out.write(os.urandom(1000))
 
-    second_repo.stage()
+    second_repo.stage(scan=True)
     second_repo.commit()
     second_repo.push()
 
@@ -67,7 +67,7 @@ def test_layer_add_list_remove(new_lore_repo):
     with third_repo.open_file(third_file, mode="w+b") as out:
         out.write(os.urandom(1000))
 
-    third_repo.stage()
+    third_repo.stage(scan=True)
     third_repo.commit()
     third_repo.push()
 
@@ -138,7 +138,7 @@ def test_layer_stage_status_commit(new_lore_repo):
     with repo.open_file("root_repo.txt", mode="w+b") as out:
         out.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -147,7 +147,7 @@ def test_layer_stage_status_commit(new_lore_repo):
     with second_repo.open_file(second_file, mode="w+b") as out:
         out.write(os.urandom(1000))
 
-    second_repo.stage()
+    second_repo.stage(scan=True)
     second_repo.commit()
     second_repo.push()
 
@@ -156,7 +156,7 @@ def test_layer_stage_status_commit(new_lore_repo):
     with third_repo.open_file(third_file, mode="w+b") as out:
         out.write(os.urandom(1000))
 
-    third_repo.stage()
+    third_repo.stage(scan=True)
     third_repo.commit()
     third_repo.push()
 
@@ -226,7 +226,7 @@ def test_layer_branch_create(new_lore_repo):
     with repo.open_file("root_repo.txt", mode="w+b") as out:
         out.write(os.urandom(1000))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -235,7 +235,7 @@ def test_layer_branch_create(new_lore_repo):
     with second_repo.open_file(second_file, mode="w+b") as out:
         out.write(os.urandom(1000))
 
-    second_repo.stage()
+    second_repo.stage(scan=True)
     second_repo.commit()
     second_repo.push()
 
@@ -271,7 +271,7 @@ def test_layer_branch_switch_basic(new_lore_repo):
     # Make a change in the layer on the feature branch
     with repo.open_file(os.path.join("lay", "layer_file.txt"), "wb") as f:
         f.write(b"layer content feature")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -519,7 +519,7 @@ def _setup_repo_with_two_layers(new_lore_repo):
 
     with repo.open_file("root_repo.txt", mode="w+b") as out:
         out.write(os.urandom(1000))
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -527,7 +527,7 @@ def _setup_repo_with_two_layers(new_lore_repo):
     second_repo.make_dirs(os.path.dirname(second_file))
     with second_repo.open_file(second_file, mode="w+b") as out:
         out.write(os.urandom(1000))
-    second_repo.stage()
+    second_repo.stage(scan=True)
     second_repo.commit()
     second_repo.push()
 
@@ -535,7 +535,7 @@ def _setup_repo_with_two_layers(new_lore_repo):
     third_repo.make_dirs(os.path.dirname(third_file))
     with third_repo.open_file(third_file, mode="w+b") as out:
         out.write(os.urandom(1000))
-    third_repo.stage()
+    third_repo.stage(scan=True)
     third_repo.commit()
     third_repo.push()
 
@@ -565,7 +565,7 @@ def test_layer_stage_root_dot(new_lore_repo):
     with repo.open_file(thr_file, mode="wb") as out:
         out.write(os.urandom(1500))
 
-    repo.stage()
+    repo.stage(scan=True)
 
     status_output = repo.status(json=True)
     status_entries = parse_status_json(status_output)
@@ -606,7 +606,7 @@ def test_layer_stage_ancestor(new_lore_repo):
 
     # Stage from repo root (== ancestor of both layers AND parent's own files),
     # explicit "." path rather than the no-arg form covered above.
-    repo.stage(".")
+    repo.stage(".", scan=True)
 
     status_output = repo.status(json=True)
     status_entries = parse_status_json(status_output)
@@ -714,7 +714,7 @@ def test_layer_scoped_commit_no_parent_change(new_lore_repo):
     with repo.open_file(thr_file, mode="wb") as out:
         out.write(os.urandom(1500))
 
-    repo.stage(".")
+    repo.stage(".", scan=True)
 
     # Commit only the "thr" layer
     repo.commit("Just the thr layer", layer="thr")
@@ -846,7 +846,7 @@ def test_layer_commit_multiple_messages(new_lore_repo):
         out.write(os.urandom(2000))
     with repo.open_file(thr_file, mode="wb") as out:
         out.write(os.urandom(2000))
-    repo.stage(".")
+    repo.stage(".", scan=True)
 
     repo.commit(
         "Main",
@@ -875,7 +875,7 @@ def test_layer_commit_partial_messages(new_lore_repo):
         out.write(os.urandom(2000))
     with repo.open_file(thr_file, mode="wb") as out:
         out.write(os.urandom(2000))
-    repo.stage(".")
+    repo.stage(".", scan=True)
 
     repo.commit(
         "Main message",
@@ -903,7 +903,7 @@ def test_layer_commit_non_interactive(new_lore_repo):
         out.write(os.urandom(2000))
     with repo.open_file(thr_file, mode="wb") as out:
         out.write(os.urandom(2000))
-    repo.stage(".")
+    repo.stage(".", scan=True)
 
     # No layer_messages, --non-interactive — should not prompt and both layers
     # should receive the main message.
@@ -947,14 +947,14 @@ def test_commit_no_layers_unchanged(new_lore_repo):
 
     with repo.open_file("file.txt", mode="w+b") as out:
         out.write(b"initial content")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial commit")
     repo.push()
 
     # Modify and re-commit
     with repo.open_file("file.txt", mode="w+b") as out:
         out.write(b"updated content")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Update content")
     repo.push()
 

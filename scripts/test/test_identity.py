@@ -58,7 +58,7 @@ def test_commit_without_identity_succeeds_against_unauth_remote(new_lore_repo):
     _strip_identity_from_config(repo)
     with repo.open_file("seed.txt", "w+") as f:
         f.write("seed\n")
-    repo.stage(offline=True, identity="")
+    repo.stage(scan=True, offline=True, identity="")
     repo.commit("seed", offline=True, identity="")
 
     rev = repo.revision_info(metadata=True)
@@ -75,7 +75,7 @@ def test_commit_with_identity_stamps_creator_and_committer(new_lore_repo):
     repo: Lore = new_lore_repo()
     with repo.open_file("seed.txt", "w+") as f:
         f.write("seed\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("seed", offline=True, identity="alice")
 
     rev = repo.revision_info(metadata=True)
@@ -92,7 +92,7 @@ def test_amend_updates_committer_keeps_creator(new_lore_repo):
     repo: Lore = new_lore_repo()
     with repo.open_file("seed.txt", "w+") as f:
         f.write("seed\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("seed", offline=True, identity="alice")
 
     repo.revision_amend("amended", identity="bob", offline=True)
@@ -119,7 +119,7 @@ def test_clone_persists_explicit_identity_to_config(new_lore_repo):
     repo: Lore = new_lore_repo()
     with repo.open_file("seed.txt", "w+") as f:
         f.write("seed\n")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     repo.commit("seed", offline=True)
     repo.push()
 
@@ -142,7 +142,7 @@ def test_explicit_identity_arg_does_not_persist_to_config(new_lore_repo):
 
     with repo.open_file("seed.txt", "w+") as f:
         f.write("seed\n")
-    repo.stage(offline=True, identity="dora")
+    repo.stage(scan=True, offline=True, identity="dora")
     repo.commit("seed", offline=True, identity="dora")
 
     assert _read_identity_in_config(repo) is None, (

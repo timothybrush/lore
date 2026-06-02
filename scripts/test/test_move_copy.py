@@ -633,7 +633,7 @@ class MoveCopyMergeTester:
 
     def try_stage(self) -> bool:
         """Stage all changes in the repository."""
-        self.repo.file_stage(offline=True)
+        self.repo.file_stage(scan=True, offline=True)
         return True
 
     def try_commit(self, message: str) -> bool:
@@ -2168,7 +2168,7 @@ class TestDirectoryMoveCore:
         repo.remove_file(c / deleted)
         repo.write_files({c / modified: os.urandom(2001), c / added: os.urandom(2002)})
 
-        repo.stage(".")
+        repo.stage(".", scan=True)
 
         verify_operations_in_status(
             repo.status(),

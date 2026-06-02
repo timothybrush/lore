@@ -61,14 +61,14 @@ def test_branch(new_lore_repo):
     with repo.open_file(bin_file, "w+b") as file:
         file.write(os.urandom(100))
 
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     # Ensure branches can be created even with staged state
     repo.branch_create("test-branch-staged")
     repo.unstage(offline=True)
     repo.branch_switch("test-branch")
     repo.branch_delete("test-branch-staged")
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     repo.commit()
     repo.push()
@@ -139,7 +139,7 @@ def test_branch(new_lore_repo):
             ["One line\n", "Another line\n", "Third line\n", "Divergent line\n"]
         )
 
-    urc_divergent.stage()
+    urc_divergent.stage(scan=True)
     urc_divergent.commit("Test commit 3 (divergent)")
 
     with pytest.raises(BranchDivergedError):
@@ -595,7 +595,7 @@ def test_divergent_modified_deleted_with_siblings(new_lore_repo):
 
     clone = repo.clone()
     clone.rmtree("folder/subfolder2")
-    clone.stage(".")
+    clone.stage(".", scan=True)
     clone.commit("Remove subfolder2")
     clone.push()
 
@@ -656,7 +656,7 @@ def test_divergent_deleted_modified_with_siblings(new_lore_repo):
     )
 
     clone.rmtree("folder/subfolder2")
-    clone.stage(".")
+    clone.stage(".", scan=True)
     clone.commit("Remove subfolder2")
     with pytest.raises(BranchDivergedError):
         clone.push()
@@ -705,7 +705,7 @@ def test_switch_to_branch_deleting_dir_with_local_modified_file(new_lore_repo):
 
     repo.branch_create("delete-dir")
     repo.rmtree("doomed_dir")
-    repo.stage(".")
+    repo.stage(".", scan=True)
     repo.commit("Delete doomed_dir")
     repo.push()
 
@@ -742,7 +742,7 @@ def test_switch_to_branch_deleting_dir_with_local_added_file(new_lore_repo):
 
     repo.branch_create("delete-dir")
     repo.rmtree("doomed_dir")
-    repo.stage(".")
+    repo.stage(".", scan=True)
     repo.commit("Delete doomed_dir")
     repo.push()
 
@@ -779,7 +779,7 @@ def test_switch_to_branch_deleting_dir_with_missing_tracked_file(new_lore_repo):
 
     repo.branch_create("delete-dir")
     repo.rmtree("doomed_dir")
-    repo.stage(".")
+    repo.stage(".", scan=True)
     repo.commit("Delete doomed_dir")
     repo.push()
 
@@ -983,7 +983,7 @@ def test_branch_point_preserves_branch(new_lore_repo):
     # Create initial commit on main
     with repo.open_file("file.txt", "w+") as f:
         f.write("initial\n")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -997,7 +997,7 @@ def test_branch_point_preserves_branch(new_lore_repo):
     # Commit on test-branch
     with repo.open_file("file.txt", "w+") as f:
         f.write("on test-branch\n")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("commit on test-branch", offline=True)
 
     # Sync back to the branch point — should stay on test-branch

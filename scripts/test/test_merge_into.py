@@ -21,7 +21,7 @@ def test_merge_into(new_lore_repo):
             ["This file exists to create an initial commit on the 'main' branch.\n"]
         )
     # Stage the dummy file
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     # Commit the dummy file
     repo.commit("Commit 'dummy.txt' on main branch", offline=True)
     # Push the revision
@@ -37,7 +37,7 @@ def test_merge_into(new_lore_repo):
     with repo.open_file(os.path.join("main-dir", "a.file"), "w+b") as output_file:
         output_file.write(os.urandom(1234))
     # Stage the example file
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     # Commit the example file
     repo.commit("Commit 'example.txt' on main branch", offline=True)
     # Push the revision
@@ -57,7 +57,7 @@ def test_merge_into(new_lore_repo):
     # Delete a file and directory
     shutil.rmtree(os.path.join(repo.path, "main-dir"))
     # Stage the example file
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     # Set metadata on the example file
     repo.file_metadata_set(
         example_file, ["Quote", "Code is read much more often than it is written."]
@@ -85,7 +85,7 @@ def test_merge_into(new_lore_repo):
     ) as output_file:
         output_file.write(os.urandom(123456))
     # Stage the example files
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     # Commit the example files
     repo.commit("Commit again on main branch", offline=True)
     # Push the revision
@@ -98,7 +98,7 @@ def test_merge_into(new_lore_repo):
     with repo.open_file(binary_file, "w+b") as output_file:
         output_file.write(os.urandom(100))
     # Stage the binary file
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
     # Commit the binary file
     repo.commit("Commit again on feature branch", offline=True)
     # Push the revision

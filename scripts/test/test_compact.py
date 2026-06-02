@@ -42,7 +42,7 @@ def test_store_compaction(new_lore_repo, lore_executable_path):
     )
 
     # Commit local to ensure data gets written to local store
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Generate files", local=True)
     repo.push(max_connections=16)
 

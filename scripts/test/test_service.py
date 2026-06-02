@@ -39,7 +39,7 @@ def test_service_call(new_lore_repo, background_lore_service):
     with repo.open_file(file_name, "w+b") as output_file:
         output_file.write(os.urandom(30))
 
-    repo.stage()
+    repo.stage(scan=True)
 
     status_output = repo.status()
 

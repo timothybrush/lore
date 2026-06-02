@@ -182,7 +182,7 @@ def test_merge_conflict_reset_shows_file_once(new_lore_repo):
     with repo.open_file(conflicting_file, "w+") as output_file:
         output_file.writelines(["Line A\n", "Line B\n", "Line C\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial commit")
 
     # Branch 1: Fix the typo in auto_merged_file
@@ -193,7 +193,7 @@ def test_merge_conflict_reset_shows_file_once(new_lore_repo):
     with repo.open_file(conflicting_file, "w+") as output_file:
         output_file.writelines(["Line A\n", "Modified by branch1\n", "Line C\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Fix typo in branch1")
     repo.push()
 
@@ -206,7 +206,7 @@ def test_merge_conflict_reset_shows_file_once(new_lore_repo):
     with repo.open_file(conflicting_file, "w+") as output_file:
         output_file.writelines(["Line A\n", "Modified by branch2\n", "Line C\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Branch2 changes (keep typo)")
     repo.push()
 

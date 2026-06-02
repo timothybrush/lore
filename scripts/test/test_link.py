@@ -40,7 +40,7 @@ def test_link(new_lore_repo):
     with repo.open_file(subpath_file, "w+") as output_file:
         output_file.writelines(["something something in the source repository\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -62,7 +62,7 @@ def test_link(new_lore_repo):
     with link_repo.open_file(link_extra_file, "w+") as output_file:
         output_file.writelines(["an extra file in the link repository\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit()
     link_repo.push()
 
@@ -76,7 +76,7 @@ def test_link(new_lore_repo):
     with restricted_repo.open_file(restricted_text_file, "w+") as output_file:
         output_file.writelines(["top secret file content\n"])
 
-    restricted_repo.stage()
+    restricted_repo.stage(scan=True)
     restricted_repo.commit()
     restricted_repo.push()
 
@@ -88,7 +88,7 @@ def test_link(new_lore_repo):
     with restricted_repo.open_file(restricted_other_file, "w+") as output_file:
         output_file.writelines(["other topsecret file\n"])
 
-    restricted_repo.stage()
+    restricted_repo.stage(scan=True)
     restricted_repo.commit()
     restricted_repo.push()
 
@@ -194,7 +194,7 @@ def test_link(new_lore_repo):
     assert "Untracked files" in output, "No untracked files found before staging"
 
     # Check 4 files were staged
-    output = clone.stage()
+    output = clone.stage(scan=True)
 
     assert "4 files" in output, "4 changed files were not staged"
 
@@ -246,7 +246,7 @@ def test_link(new_lore_repo):
         output_file.writelines(["MODIFIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIEEEED\n"])
 
     # Force stage files
-    output = clone.stage(debug=True, force=True)
+    output = clone.stage(scan=True, debug=True, force=True)
 
     # Regex to match the staged link parent hash
     match = re.search(r"link parent to\s+([a-f0-9]{64})", output)
@@ -392,7 +392,7 @@ def test_link_update(new_lore_repo):
     with source_repo.open_file(initial_file, "w+") as output_file:
         output_file.writelines(["Initial content on main branch\n"])
 
-    source_repo.stage()
+    source_repo.stage(scan=True)
     source_repo.commit("Initial commit on main")
     source_repo.push()
 
@@ -410,7 +410,7 @@ def test_link_update(new_lore_repo):
     with source_repo.open_file(initial_file, "w+") as output_file:
         output_file.writelines(["Modified content on feature branch\n"])
 
-    source_repo.stage()
+    source_repo.stage(scan=True)
     source_repo.commit("Feature branch commit")
     source_repo.push()
 
@@ -424,7 +424,7 @@ def test_link_update(new_lore_repo):
     with source_repo.open_file(main_update_file, "w+") as output_file:
         output_file.writelines(["Additional content on main\n"])
 
-    source_repo.stage()
+    source_repo.stage(scan=True)
     source_repo.commit("Second commit on main")
     source_repo.push()
 
@@ -638,7 +638,7 @@ def test_link_update_status(new_lore_repo):
     with source_repo.open_file(initial_file, "w+") as f:
         f.writelines(["initial content\n"])
 
-    source_repo.stage()
+    source_repo.stage(scan=True)
     source_repo.commit("Initial commit")
     source_repo.push()
 
@@ -653,7 +653,7 @@ def test_link_update_status(new_lore_repo):
     with source_repo.open_file(initial_file, "w+") as f:
         f.writelines(["modified on feature\n"])
 
-    source_repo.stage()
+    source_repo.stage(scan=True)
     source_repo.commit("Feature commit")
     source_repo.push()
 
@@ -710,7 +710,7 @@ def test_link_unchanged_commit(new_lore_repo):
     with repo.open_file(source_subdir_file, "w+") as output_file:
         output_file.writelines(["initial source subdir content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -726,7 +726,7 @@ def test_link_unchanged_commit(new_lore_repo):
     with link_repo.open_file(link_subdir_file, "w+") as output_file:
         output_file.writelines(["initial link content 2\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit()
     link_repo.push()
 
@@ -754,7 +754,7 @@ def test_link_unchanged_commit(new_lore_repo):
         output_file.writelines(["new source file content\n"])
 
     # Stage and commit changes to source repository only
-    output = repo.stage()
+    output = repo.stage(scan=True)
     assert "2 files" in output, "Expected 2 files to be staged"
 
     # Commit the source repository changes
@@ -766,7 +766,7 @@ def test_link_unchanged_commit(new_lore_repo):
     with repo.open_file(expected_link_file1, "w+") as output_file:
         output_file.writelines(["modified link content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     commit_output = repo.commit("Modify link content", debug=True)
 
     assert "Before committing link node" in commit_output, (
@@ -778,7 +778,7 @@ def test_link_unchanged_commit(new_lore_repo):
     with repo.open_file(final_source_file, "w+") as output_file:
         output_file.writelines(["final source content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     commit_output = repo.commit("Final source changes", debug=True)
 
     assert "Before committing link node" not in commit_output, (
@@ -800,7 +800,7 @@ def test_link_with_url(new_lore_repo):
     with link_repo.open_file(link_file, "w+") as output_file:
         output_file.writelines(["Content from linked repository\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial content")
     link_repo.push()
 
@@ -833,7 +833,7 @@ def test_link_with_url(new_lore_repo):
     )
 
     # Stage and commit the links to verify they work properly
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Added links using URLs")
     repo.push()
 
@@ -865,7 +865,7 @@ def test_link_add_remove(new_lore_repo):
     with main_repo.open_file(main_file, "w+") as output_file:
         output_file.writelines(["Initial main repository content\n"])
 
-    main_repo.stage()
+    main_repo.stage(scan=True)
     main_repo.commit("Initial main repo content")
     main_repo.push()
 
@@ -885,7 +885,7 @@ def test_link_add_remove(new_lore_repo):
     with source_repo.open_file(source_file2, "w+") as output_file:
         output_file.writelines(["Source repository file 2 content\n"])
 
-    source_repo.stage()
+    source_repo.stage(scan=True)
     source_repo.commit("Initial source repo content")
     source_repo.push()
 
@@ -1171,7 +1171,7 @@ def test_link_staging(new_lore_repo):
     with repo.open_file(main_initial_file, "w+") as output_file:
         output_file.writelines(["Initial main repository content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial main repository setup")
     repo.push()
 
@@ -1203,7 +1203,7 @@ def test_link_staging(new_lore_repo):
         output_file.writelines(["Initial content of deep file\n"])
 
     # Stage, commit, and push initial state
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repository structure")
     link_repo.push()
 
@@ -1465,7 +1465,7 @@ def test_link_staging(new_lore_repo):
     with second_link_repo.open_file(second_link_file, "w+") as output_file:
         output_file.writelines(["Content from second link repository\n"])
 
-    second_link_repo.stage()
+    second_link_repo.stage(scan=True)
     second_link_repo.commit("Initial second link repository")
     second_link_repo.push()
 
@@ -1569,7 +1569,7 @@ def test_link_validation_checks(new_lore_repo):
     with main_repo.open_file(main_file, "w+") as output_file:
         output_file.writelines(["Main repository file content\n"])
 
-    main_repo.stage()
+    main_repo.stage(scan=True)
     main_repo.commit("Initial main repo content")
     main_repo.push()
 
@@ -1581,7 +1581,7 @@ def test_link_validation_checks(new_lore_repo):
     with repo_to_link.open_file(link_file, "w+") as output_file:
         output_file.writelines(["First link repository file content\n"])
 
-    repo_to_link.stage()
+    repo_to_link.stage(scan=True)
     repo_to_link.commit("Initial link repo content")
     repo_to_link.push()
 
@@ -1593,7 +1593,7 @@ def test_link_validation_checks(new_lore_repo):
     with repo_to_nest.open_file(nest_file, "w+") as output_file:
         output_file.writelines(["Second link repository file content\n"])
 
-    repo_to_nest.stage()
+    repo_to_nest.stage(scan=True)
     repo_to_nest.commit("Initial nest repo content")
     repo_to_nest.push()
 
@@ -1640,7 +1640,7 @@ def test_link_validation_checks(new_lore_repo):
             logger.info("Caught expected error for children check: %s", error_msg)
 
     # Stage and commit the deletions - this removes the directory from Lore's state
-    main_repo.stage()
+    main_repo.stage(scan=True)
     main_repo.commit("Remove files and folders to prepare for linking")
     main_repo.push()
 
@@ -1694,7 +1694,7 @@ def test_link_unstage(new_lore_repo):
     with repo.open_file("source-file.txt", "w+") as output_file:
         output_file.writelines(["source repository content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -1716,7 +1716,7 @@ def test_link_unstage(new_lore_repo):
     with link_repo.open_file(link_subdir_file, "w+") as output_file:
         output_file.writelines(["link subdir file content\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit()
     link_repo.push()
 
@@ -1752,7 +1752,7 @@ def test_link_unstage(new_lore_repo):
         output_file.writelines(["NEW file content\n"])
 
     # Stage all changes
-    output = repo.stage()
+    output = repo.stage(scan=True)
     assert "4 files" in output, "4 files should be staged (3 modified + 1 added)"
 
     # Verify all files are staged using JSON status checks
@@ -1866,7 +1866,7 @@ def test_link_reset(new_lore_repo):
     with repo.open_file(source_file, "w+") as output_file:
         output_file.writelines(["source repository content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit()
     repo.push()
 
@@ -1892,7 +1892,7 @@ def test_link_reset(new_lore_repo):
     with link_repo.open_file(link_deep_file, "w+") as output_file:
         output_file.writelines(["link deep file original\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit()
     link_repo.push()
 
@@ -2061,7 +2061,7 @@ def test_link_reset(new_lore_repo):
     with second_link_repo.open_file(second_link_file, "w+") as output_file:
         output_file.writelines(["second link file original\n"])
 
-    second_link_repo.stage()
+    second_link_repo.stage(scan=True)
     second_link_repo.commit()
     second_link_repo.push()
 
@@ -2102,7 +2102,7 @@ def test_link_merge_specific(new_lore_repo):
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo base content\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main repo commit")
     urc.push()
 
@@ -2112,7 +2112,7 @@ def test_link_merge_specific(new_lore_repo):
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link repo base content\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -2133,7 +2133,7 @@ def test_link_merge_specific(new_lore_repo):
     with urc.open_file(f"{link_path}/feature-link-file.txt", "w+") as f:
         f.writelines(["feature branch link repo addition\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch additions")
     urc.push()
 
@@ -2143,7 +2143,7 @@ def test_link_merge_specific(new_lore_repo):
     with urc.open_file("main-only-file.txt", "w+") as f:
         f.writelines(["main branch only addition\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch addition")
     urc.push()
 
@@ -2186,7 +2186,7 @@ def test_link_merge_abort_specific(new_lore_repo):
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo base content\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main repo commit")
     urc.push()
 
@@ -2196,7 +2196,7 @@ def test_link_merge_abort_specific(new_lore_repo):
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link repo base content\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -2214,7 +2214,7 @@ def test_link_merge_abort_specific(new_lore_repo):
     with urc.open_file(f"{link_path}/feature-link-file.txt", "w+") as f:
         f.writelines(["feature branch link repo addition\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch link addition")
     urc.push()
 
@@ -2249,14 +2249,14 @@ def test_link_merge_preserves_tracked_branch(new_lore_repo):
 
     with repo.open_file("main-file.txt", "w+") as f:
         f.writelines(["main content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial main commit")
     repo.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -2272,7 +2272,7 @@ def test_link_merge_preserves_tracked_branch(new_lore_repo):
     repo.branch_create("feature-branch")
     with repo.open_file(f"{link_path}/feature-file.txt", "w+") as f:
         f.writelines(["feature content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Feature branch addition")
     repo.push()
 
@@ -2301,14 +2301,14 @@ def test_link_merge_sequential(new_lore_repo):
 
     with repo.open_file("main-file.txt", "w+") as f:
         f.writelines(["main content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial main commit")
     repo.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -2321,7 +2321,7 @@ def test_link_merge_sequential(new_lore_repo):
     repo.branch_create("feature-branch")
     with repo.open_file(f"{link_path}/first.txt", "w+") as f:
         f.writelines(["first feature file\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("First feature commit")
     repo.push()
 
@@ -2338,7 +2338,7 @@ def test_link_merge_sequential(new_lore_repo):
     repo.branch_switch("feature-branch")
     with repo.open_file(f"{link_path}/second.txt", "w+") as f:
         f.writelines(["second feature file\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Second feature commit")
     repo.push()
 
@@ -2368,14 +2368,14 @@ def test_link_update_after_merge(new_lore_repo):
 
     with repo.open_file("main-file.txt", "w+") as f:
         f.writelines(["main content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial main commit")
     repo.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -2388,7 +2388,7 @@ def test_link_update_after_merge(new_lore_repo):
     repo.branch_create("feature-branch")
     with repo.open_file(f"{link_path}/feature-file.txt", "w+") as f:
         f.writelines(["feature content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Feature commit")
     repo.push()
 
@@ -2403,7 +2403,7 @@ def test_link_update_after_merge(new_lore_repo):
     link_repo.sync()
     with link_repo.open_file("direct-update.txt", "w+") as f:
         f.writelines(["direct update content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Direct update to linked repo")
     link_repo.push()
 
@@ -2423,14 +2423,14 @@ def test_link_merge_abort_restores_link_state(new_lore_repo):
 
     with repo.open_file("main-file.txt", "w+") as f:
         f.writelines(["main content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial main commit")
     repo.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -2446,7 +2446,7 @@ def test_link_merge_abort_restores_link_state(new_lore_repo):
     repo.branch_create("feature-branch")
     with repo.open_file(f"{link_path}/feature-file.txt", "w+") as f:
         f.writelines(["feature content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Feature commit")
     repo.push()
 
@@ -2488,14 +2488,14 @@ def test_link_merge_abort_preserves_parent_staged_state(new_lore_repo):
 
     with repo.open_file("main-file.txt", "w+") as f:
         f.writelines(["main content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial main commit")
     repo.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -2508,7 +2508,7 @@ def test_link_merge_abort_preserves_parent_staged_state(new_lore_repo):
     repo.branch_create("feature-branch")
     with repo.open_file(f"{link_path}/feature-file.txt", "w+") as f:
         f.writelines(["feature content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Feature commit")
     repo.push()
 
@@ -2516,7 +2516,7 @@ def test_link_merge_abort_preserves_parent_staged_state(new_lore_repo):
     repo.branch_switch("main")
     with repo.open_file("parent-staged.txt", "w+") as f:
         f.writelines(["staged parent content\n"])
-    repo.stage()
+    repo.stage(scan=True)
 
     # Verify parent file is staged
     status_before = repo.status()
@@ -2563,7 +2563,7 @@ def test_link_merge_file_conflict_resolve(new_lore_repo):
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo base content\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main repo commit")
     urc.push()
 
@@ -2573,7 +2573,7 @@ def test_link_merge_file_conflict_resolve(new_lore_repo):
     with link_repo.open_file("shared-data.txt", "w+") as f:
         f.writelines(["base content\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -2591,7 +2591,7 @@ def test_link_merge_file_conflict_resolve(new_lore_repo):
     with urc.open_file(f"{link_path}/shared-data.txt", "w+") as f:
         f.writelines(["feature branch content\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch modifies shared data")
     urc.push()
 
@@ -2601,7 +2601,7 @@ def test_link_merge_file_conflict_resolve(new_lore_repo):
     with urc.open_file(f"{link_path}/shared-data.txt", "w+") as f:
         f.writelines(["main branch content\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch modifies shared data")
     urc.push()
 
@@ -2652,7 +2652,7 @@ def _setup_link_merge_conflict(new_lore_repo, link_path="linked/repo", files=Non
 
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main repo commit")
     urc.push()
 
@@ -2665,7 +2665,7 @@ def _setup_link_merge_conflict(new_lore_repo, link_path="linked/repo", files=Non
             link_repo.make_dirs(dirs)
         with link_repo.open_file(file_info["path"], "w+") as f:
             f.writelines([file_info["base"]])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -2680,7 +2680,7 @@ def _setup_link_merge_conflict(new_lore_repo, link_path="linked/repo", files=Non
     for file_info in files:
         with urc.open_file(f"{link_path}/{file_info['path']}", "w+") as f:
             f.writelines([file_info["theirs"]])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch changes")
     urc.push()
 
@@ -2689,7 +2689,7 @@ def _setup_link_merge_conflict(new_lore_repo, link_path="linked/repo", files=Non
     for file_info in files:
         with urc.open_file(f"{link_path}/{file_info['path']}", "w+") as f:
             f.writelines([file_info["mine"]])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch changes")
     urc.push()
 
@@ -2826,14 +2826,14 @@ def test_link_merge_delete_vs_modify_in_link(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("doomed.txt", "w+") as f:
         f.writelines(["link base\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -2845,7 +2845,7 @@ def test_link_merge_delete_vs_modify_in_link(new_lore_repo):
     # Feature branch: delete the link file via mount path
     urc.branch_create("feature-branch")
     urc.remove_file(f"{link_path}/doomed.txt")
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch deletes doomed.txt")
     urc.push()
 
@@ -2853,7 +2853,7 @@ def test_link_merge_delete_vs_modify_in_link(new_lore_repo):
     urc.branch_switch("main")
     with urc.open_file(f"{link_path}/doomed.txt", "w+") as f:
         f.writelines(["main modified\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch modifies doomed.txt")
     urc.push()
 
@@ -2893,7 +2893,7 @@ def test_link_merge_mixed_conflict_and_clean(new_lore_repo):
 
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main repo commit")
     urc.push()
 
@@ -2902,7 +2902,7 @@ def test_link_merge_mixed_conflict_and_clean(new_lore_repo):
         f.writelines(["base conflict\n"])
     with link_repo.open_file("clean.txt", "w+") as f:
         f.writelines(["base clean\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -2920,7 +2920,7 @@ def test_link_merge_mixed_conflict_and_clean(new_lore_repo):
         f.writelines(["clean modified by feature\n"])
     with urc.open_file(f"{link_path}/new-feature-file.txt", "w+") as f:
         f.writelines(["new file from feature\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch changes")
     urc.push()
 
@@ -2928,7 +2928,7 @@ def test_link_merge_mixed_conflict_and_clean(new_lore_repo):
     urc.branch_switch("main")
     with urc.open_file(f"{link_path}/conflict.txt", "w+") as f:
         f.writelines(["mine conflict\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch changes")
     urc.push()
 
@@ -3019,7 +3019,7 @@ def test_link_merge_into_specific(new_lore_repo):
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo base content\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main repo commit")
     urc.push()
 
@@ -3029,7 +3029,7 @@ def test_link_merge_into_specific(new_lore_repo):
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link repo base content\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -3047,7 +3047,7 @@ def test_link_merge_into_specific(new_lore_repo):
     with urc.open_file(f"{link_path}/feature-link-file.txt", "w+") as f:
         f.writelines(["feature branch link repo addition\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch link addition")
     urc.push()
 
@@ -3073,14 +3073,14 @@ def test_link_merge_into_scope_isolation(new_lore_repo):
 
     with repo.open_file("main-file.txt", "w+") as f:
         f.writelines(["main content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial main commit")
     repo.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -3097,7 +3097,7 @@ def test_link_merge_into_scope_isolation(new_lore_repo):
     with repo.open_file(f"{link_path}/feature-link-only.txt", "w+") as f:
         f.writelines(["feature link content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Feature branch additions in both repos")
     repo.push()
 
@@ -3127,14 +3127,14 @@ def test_link_merge_into_sequential(new_lore_repo):
 
     with repo.open_file("main-file.txt", "w+") as f:
         f.writelines(["main content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial main commit")
     repo.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -3147,7 +3147,7 @@ def test_link_merge_into_sequential(new_lore_repo):
     repo.branch_create("feature-branch")
     with repo.open_file(f"{link_path}/first.txt", "w+") as f:
         f.writelines(["first feature file\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("First feature commit")
     repo.push()
 
@@ -3164,7 +3164,7 @@ def test_link_merge_into_sequential(new_lore_repo):
     # Add second link file on feature branch
     with repo.open_file(f"{link_path}/second.txt", "w+") as f:
         f.writelines(["second feature file\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Second feature commit")
     repo.push()
 
@@ -3193,7 +3193,7 @@ def test_link_commit_per_link_message(new_lore_repo):
     link_file = "link-file.txt"
     with link_repo.open_file(link_file, "w+") as f:
         f.write("initial link content\n")
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -3202,7 +3202,7 @@ def test_link_commit_per_link_message(new_lore_repo):
     main_file = "main-file.txt"
     with urc.open_file(main_file, "w+") as f:
         f.write("initial main content\n")
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
@@ -3216,7 +3216,7 @@ def test_link_commit_per_link_message(new_lore_repo):
         f.write("updated main content\n")
     with urc.open_file(os.path.join(link_path, link_file), "w+") as f:
         f.write("updated link content\n")
-    urc.stage()
+    urc.stage(scan=True)
 
     # Commit with per-link message
     urc.commit(
@@ -3247,7 +3247,7 @@ def test_link_commit_no_link_message_fallback(new_lore_repo):
     link_repo: Lore = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.write("initial link content\n")
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -3255,7 +3255,7 @@ def test_link_commit_no_link_message_fallback(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.write("initial main content\n")
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
@@ -3269,7 +3269,7 @@ def test_link_commit_no_link_message_fallback(new_lore_repo):
         f.write("updated main content\n")
     with urc.open_file(os.path.join(link_path, "link-file.txt"), "w+") as f:
         f.write("updated link content\n")
-    urc.stage()
+    urc.stage(scan=True)
 
     # Commit without link messages — non-interactive to avoid prompts
     urc.commit("Shared message for all", non_interactive=True)
@@ -3290,14 +3290,14 @@ def test_link_commit_invalid_link_message_errors(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.write("content\n")
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial commit")
     urc.push()
 
     # Modify and stage
     with urc.open_file("main-file.txt", "w+") as f:
         f.write("updated content\n")
-    urc.stage()
+    urc.stage(scan=True)
 
     # Record revision before the failed commit attempt
     info_before = urc.revision_info(check=True, no_pager=True)
@@ -3327,14 +3327,14 @@ def test_link_commit_multiple_link_messages(new_lore_repo):
     link_repo_a: Lore = new_lore_repo()
     with link_repo_a.open_file("file-a.txt", "w+") as f:
         f.write("link A content\n")
-    link_repo_a.stage()
+    link_repo_a.stage(scan=True)
     link_repo_a.commit("Initial A")
     link_repo_a.push()
 
     link_repo_b: Lore = new_lore_repo()
     with link_repo_b.open_file("file-b.txt", "w+") as f:
         f.write("link B content\n")
-    link_repo_b.stage()
+    link_repo_b.stage(scan=True)
     link_repo_b.commit("Initial B")
     link_repo_b.push()
 
@@ -3342,7 +3342,7 @@ def test_link_commit_multiple_link_messages(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main.txt", "w+") as f:
         f.write("main content\n")
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main")
     urc.push()
 
@@ -3358,7 +3358,7 @@ def test_link_commit_multiple_link_messages(new_lore_repo):
         f.write("updated A\n")
     with urc.open_file("link-b/file-b.txt", "w+") as f:
         f.write("updated B\n")
-    urc.stage()
+    urc.stage(scan=True)
 
     # Commit with different messages per link
     urc.commit(
@@ -3396,14 +3396,14 @@ def test_link_commit_partial_link_messages(new_lore_repo):
     link_repo_a: Lore = new_lore_repo()
     with link_repo_a.open_file("file-a.txt", "w+") as f:
         f.write("link A content\n")
-    link_repo_a.stage()
+    link_repo_a.stage(scan=True)
     link_repo_a.commit("Initial A")
     link_repo_a.push()
 
     link_repo_b: Lore = new_lore_repo()
     with link_repo_b.open_file("file-b.txt", "w+") as f:
         f.write("link B content\n")
-    link_repo_b.stage()
+    link_repo_b.stage(scan=True)
     link_repo_b.commit("Initial B")
     link_repo_b.push()
 
@@ -3411,7 +3411,7 @@ def test_link_commit_partial_link_messages(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main.txt", "w+") as f:
         f.write("main content\n")
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main")
     urc.push()
 
@@ -3427,7 +3427,7 @@ def test_link_commit_partial_link_messages(new_lore_repo):
         f.write("updated A\n")
     with urc.open_file("link-b/file-b.txt", "w+") as f:
         f.write("updated B\n")
-    urc.stage()
+    urc.stage(scan=True)
 
     # Only specify message for link-a, not link-b
     urc.commit(
@@ -3459,7 +3459,7 @@ def test_link_commit_only_main_changes(new_lore_repo):
     link_repo: Lore = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.write("link content\n")
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link")
     link_repo.push()
 
@@ -3467,7 +3467,7 @@ def test_link_commit_only_main_changes(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main.txt", "w+") as f:
         f.write("main content\n")
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main")
     urc.push()
 
@@ -3478,7 +3478,7 @@ def test_link_commit_only_main_changes(new_lore_repo):
     # Only modify main file, not link
     with urc.open_file("main.txt", "w+") as f:
         f.write("updated main only\n")
-    urc.stage()
+    urc.stage(scan=True)
 
     # Commit with --non-interactive — no link changes so no prompting
     urc.commit("Main only change", non_interactive=True)
@@ -3495,7 +3495,7 @@ def test_link_commit_non_interactive_default_behavior(new_lore_repo):
     link_repo: Lore = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.write("link content\n")
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link")
     link_repo.push()
 
@@ -3503,7 +3503,7 @@ def test_link_commit_non_interactive_default_behavior(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main.txt", "w+") as f:
         f.write("main content\n")
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main")
     urc.push()
 
@@ -3516,7 +3516,7 @@ def test_link_commit_non_interactive_default_behavior(new_lore_repo):
         f.write("updated main\n")
     with urc.open_file("linked/link-file.txt", "w+") as f:
         f.write("updated link\n")
-    urc.stage()
+    urc.stage(scan=True)
 
     # Non-interactive commit without --link-message = same message for all (backward compat)
     urc.commit("Same message everywhere", non_interactive=True)
@@ -3539,7 +3539,7 @@ def test_link_list_staged(new_lore_repo):
     link_repo: Lore = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.write("link content\n")
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link")
     link_repo.push()
 
@@ -3547,7 +3547,7 @@ def test_link_list_staged(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main.txt", "w+") as f:
         f.write("main content\n")
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main")
     urc.push()
 
@@ -3561,7 +3561,7 @@ def test_link_list_staged(new_lore_repo):
         f.write("updated main\n")
     with urc.open_file(os.path.join(link_path, "link-file.txt"), "w+") as f:
         f.write("updated link\n")
-    urc.stage()
+    urc.stage(scan=True)
 
     # link list --staged should show the linked repo with file count
     output = urc.link_list(staged=True)
@@ -3580,7 +3580,7 @@ def test_link_list_staged_no_changes(new_lore_repo):
     link_repo: Lore = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.write("link content\n")
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link")
     link_repo.push()
 
@@ -3588,7 +3588,7 @@ def test_link_list_staged_no_changes(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main.txt", "w+") as f:
         f.write("main content\n")
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main")
     urc.push()
 
@@ -3599,7 +3599,7 @@ def test_link_list_staged_no_changes(new_lore_repo):
     # Only modify main file, not link
     with urc.open_file("main.txt", "w+") as f:
         f.write("updated main only\n")
-    urc.stage()
+    urc.stage(scan=True)
 
     # link list --staged should show no links
     output = urc.link_list(staged=True)
@@ -3628,7 +3628,7 @@ def test_link_branching_and_pinning(new_lore_repo):
     with parent_repo.open_file("parent-file.txt", "w+") as f:
         f.writelines(["parent content\n"])
 
-    parent_repo.stage()
+    parent_repo.stage(scan=True)
     parent_repo.commit("Initial parent commit")
     parent_repo.push()
 
@@ -3642,7 +3642,7 @@ def test_link_branching_and_pinning(new_lore_repo):
     link_repo_a = new_lore_repo()
     with link_repo_a.open_file("file-a.txt", "w+") as f:
         f.writelines(["link A content\n"])
-    link_repo_a.stage()
+    link_repo_a.stage(scan=True)
     link_repo_a.commit("Initial A")
     link_repo_a.push()
 
@@ -3650,7 +3650,7 @@ def test_link_branching_and_pinning(new_lore_repo):
     link_repo_b = new_lore_repo()
     with link_repo_b.open_file("file-b.txt", "w+") as f:
         f.writelines(["link B content\n"])
-    link_repo_b.stage()
+    link_repo_b.stage(scan=True)
     link_repo_b.commit("Initial B")
     link_repo_b.push()
 
@@ -3658,7 +3658,7 @@ def test_link_branching_and_pinning(new_lore_repo):
     main_latest_b = link_repo_b.branch_info().local_latest
     with link_repo_b.open_file("file-b2.txt", "w+") as f:
         f.writelines(["link B second file\n"])
-    link_repo_b.stage()
+    link_repo_b.stage(scan=True)
     link_repo_b.commit("Second B commit")
     link_repo_b.push()
 
@@ -3666,7 +3666,7 @@ def test_link_branching_and_pinning(new_lore_repo):
     link_repo_c = new_lore_repo()
     with link_repo_c.open_file("file-c.txt", "w+") as f:
         f.writelines(["link C content\n"])
-    link_repo_c.stage()
+    link_repo_c.stage(scan=True)
     link_repo_c.commit("Initial C")
     link_repo_c.push()
 
@@ -3674,7 +3674,7 @@ def test_link_branching_and_pinning(new_lore_repo):
     link_repo_d = new_lore_repo()
     with link_repo_d.open_file("file-d.txt", "w+") as f:
         f.writelines(["link D content\n"])
-    link_repo_d.stage()
+    link_repo_d.stage(scan=True)
     link_repo_d.commit("Initial D")
     link_repo_d.push()
 
@@ -3682,7 +3682,7 @@ def test_link_branching_and_pinning(new_lore_repo):
     link_repo_d.branch_create("pinned-branch")
     with link_repo_d.open_file("file-d2.txt", "w+") as f:
         f.writelines(["link D pinned branch content\n"])
-    link_repo_d.stage()
+    link_repo_d.stage(scan=True)
     link_repo_d.commit("D pinned branch commit")
     link_repo_d.push()
     pinned_branch_latest_d = link_repo_d.branch_info().local_latest
@@ -3871,7 +3871,7 @@ def test_link_scoped_commit(new_lore_repo):
     with repo.open_file("parent-file.txt", "w+") as f:
         f.writelines(["parent content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial parent")
     repo.push()
 
@@ -3880,7 +3880,7 @@ def test_link_scoped_commit(new_lore_repo):
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["initial link content\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link")
     link_repo.push()
 
@@ -3917,7 +3917,7 @@ def test_link_scoped_commit_no_parent_change(new_lore_repo):
     with repo.open_file("parent-file.txt", "w+") as f:
         f.writelines(["parent content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial parent")
     repo.push()
 
@@ -3926,7 +3926,7 @@ def test_link_scoped_commit_no_parent_change(new_lore_repo):
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["initial link content\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link")
     link_repo.push()
 
@@ -3969,14 +3969,14 @@ def test_link_scoped_commit_not_a_link(new_lore_repo):
     with repo.open_file("regular-dir/file.txt", "w+") as f:
         f.writelines(["content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial commit")
     repo.push()
 
     # Modify a file and stage it
     with repo.open_file("regular-dir/file.txt", "w+") as f:
         f.writelines(["modified\n"])
-    repo.stage()
+    repo.stage(scan=True)
 
     # Try to commit with --link pointing to a regular directory
     with pytest.raises(NotALinkError):
@@ -3991,7 +3991,7 @@ def test_link_scoped_commit_nothing_staged(new_lore_repo):
     with repo.open_file("parent-file.txt", "w+") as f:
         f.writelines(["parent content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial parent")
     repo.push()
 
@@ -4000,7 +4000,7 @@ def test_link_scoped_commit_nothing_staged(new_lore_repo):
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link content\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link")
     link_repo.push()
 
@@ -4022,7 +4022,7 @@ def test_link_scoped_commit_consecutive(new_lore_repo):
     with repo.open_file("parent-file.txt", "w+") as f:
         f.writelines(["parent content\n"])
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial parent")
     repo.push()
 
@@ -4031,7 +4031,7 @@ def test_link_scoped_commit_consecutive(new_lore_repo):
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["initial link content\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link")
     link_repo.push()
 
@@ -4075,7 +4075,7 @@ def test_link_scoped_commit_push_propagates_to_link(new_lore_repo):
     link_repo: Lore = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["initial link content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link")
     link_repo.push()
 
@@ -4083,7 +4083,7 @@ def test_link_scoped_commit_push_propagates_to_link(new_lore_repo):
     repo: Lore = new_lore_repo()
     with repo.open_file("parent-file.txt", "w+") as f:
         f.writelines(["parent content\n"])
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Initial parent")
     repo.push()
 
@@ -4145,7 +4145,7 @@ def test_link_update_subdirectory_source(new_lore_repo):
     with source_repo.open_file("TestFolder/B.txt", "w+") as f:
         f.writelines(["file B content\n"])
 
-    source_repo.stage()
+    source_repo.stage(scan=True)
     source_repo.commit("Initial files in TestFolder")
     source_repo.push()
 
@@ -4157,7 +4157,7 @@ def test_link_update_subdirectory_source(new_lore_repo):
     with source_repo.open_file("TestFolder/D.txt", "w+") as f:
         f.writelines(["file D content\n"])
 
-    source_repo.stage()
+    source_repo.stage(scan=True)
     source_repo.commit("Added C and D to TestFolder")
     source_repo.push()
 
@@ -4167,7 +4167,7 @@ def test_link_update_subdirectory_source(new_lore_repo):
     main_repo: Lore = new_lore_repo()
 
     main_repo.make_dirs("Restricted")
-    main_repo.stage()
+    main_repo.stage(scan=True)
     main_repo.commit("Create Restricted directory")
     main_repo.push()
 
@@ -4256,7 +4256,7 @@ def test_link_merge_all(new_lore_repo):
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo base content\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main repo commit")
     urc.push()
 
@@ -4266,7 +4266,7 @@ def test_link_merge_all(new_lore_repo):
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link repo base content\n"])
 
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -4287,7 +4287,7 @@ def test_link_merge_all(new_lore_repo):
     with urc.open_file(f"{link_path}/feature-link-file.txt", "w+") as f:
         f.writelines(["feature branch link repo addition\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch additions")
     urc.push()
 
@@ -4300,7 +4300,7 @@ def test_link_merge_all(new_lore_repo):
     with urc.open_file(f"{link_path}/main-link-file.txt", "w+") as f:
         f.writelines(["main branch link repo addition\n"])
 
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch additions")
     urc.push()
 
@@ -4355,14 +4355,14 @@ def test_link_merge_abort_all(new_lore_repo):
 
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo base content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main repo commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link repo base content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -4377,7 +4377,7 @@ def test_link_merge_abort_all(new_lore_repo):
         f.writelines(["feature branch main repo addition\n"])
     with urc.open_file(f"{link_path}/feature-link-file.txt", "w+") as f:
         f.writelines(["feature branch link repo addition\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch additions")
     urc.push()
 
@@ -4386,7 +4386,7 @@ def test_link_merge_abort_all(new_lore_repo):
         f.writelines(["main branch only addition\n"])
     with urc.open_file(f"{link_path}/main-link-file.txt", "w+") as f:
         f.writelines(["main branch link repo addition\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch additions")
     urc.push()
 
@@ -4427,14 +4427,14 @@ def test_link_merge_abort_ignore_links(new_lore_repo):
 
     with urc.open_file("shared-file.txt", "w+") as f:
         f.writelines(["base content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link repo base content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -4450,7 +4450,7 @@ def test_link_merge_abort_ignore_links(new_lore_repo):
         f.writelines(["feature branch content\n"])
     with urc.open_file(f"{link_path}/feature-link-file.txt", "w+") as f:
         f.writelines(["feature branch link addition\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch changes")
     urc.push()
 
@@ -4461,7 +4461,7 @@ def test_link_merge_abort_ignore_links(new_lore_repo):
         f.writelines(["main branch content\n"])
     with urc.open_file(f"{link_path}/main-link-file.txt", "w+") as f:
         f.writelines(["main branch link addition\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch changes")
     urc.push()
 
@@ -4501,14 +4501,14 @@ def test_link_merge_resume(new_lore_repo):
 
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo base content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link repo base content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -4523,7 +4523,7 @@ def test_link_merge_resume(new_lore_repo):
         f.writelines(["feature main addition\n"])
     with urc.open_file(f"{link_path}/feature-link-file.txt", "w+") as f:
         f.writelines(["feature link addition\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch changes")
     urc.push()
 
@@ -4532,7 +4532,7 @@ def test_link_merge_resume(new_lore_repo):
         f.writelines(["main only addition\n"])
     with urc.open_file(f"{link_path}/main-link-file.txt", "w+") as f:
         f.writelines(["main link addition\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch changes")
     urc.push()
 
@@ -4572,14 +4572,14 @@ def test_link_merge_dry_run(new_lore_repo):
 
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo base content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main repo commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link repo base content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -4594,7 +4594,7 @@ def test_link_merge_dry_run(new_lore_repo):
         f.writelines(["feature branch main repo addition\n"])
     with urc.open_file(f"{link_path}/feature-link-file.txt", "w+") as f:
         f.writelines(["feature branch link repo addition\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch additions")
     urc.push()
 
@@ -4631,14 +4631,14 @@ def test_link_merge_all_file_conflict_resolve_in_place(new_lore_repo):
 
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo base content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("shared-link-file.txt", "w+") as f:
         f.writelines(["base content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -4650,14 +4650,14 @@ def test_link_merge_all_file_conflict_resolve_in_place(new_lore_repo):
     urc.branch_create("feature-branch")
     with urc.open_file(f"{link_path}/shared-link-file.txt", "w+") as f:
         f.writelines(["feature branch content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch changes")
     urc.push()
 
     urc.branch_switch("main")
     with urc.open_file(f"{link_path}/shared-link-file.txt", "w+") as f:
         f.writelines(["main branch content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch changes")
     urc.push()
 
@@ -4729,14 +4729,14 @@ def test_link_merge_all_file_conflict_abort(new_lore_repo):
 
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo base content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("shared-link-file.txt", "w+") as f:
         f.writelines(["base content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -4748,14 +4748,14 @@ def test_link_merge_all_file_conflict_abort(new_lore_repo):
     urc.branch_create("feature-branch")
     with urc.open_file(f"{link_path}/shared-link-file.txt", "w+") as f:
         f.writelines(["feature branch content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch changes")
     urc.push()
 
     urc.branch_switch("main")
     with urc.open_file(f"{link_path}/shared-link-file.txt", "w+") as f:
         f.writelines(["main branch content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch changes")
     urc.push()
 
@@ -4808,7 +4808,7 @@ def test_link_merge_all_mixed_clean_and_conflict(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
@@ -4816,7 +4816,7 @@ def test_link_merge_all_mixed_clean_and_conflict(new_lore_repo):
     link_a = new_lore_repo()
     with link_a.open_file("a-base.txt", "w+") as f:
         f.writelines(["a base\n"])
-    link_a.stage()
+    link_a.stage(scan=True)
     link_a.commit("Initial link A commit")
     link_a.push()
 
@@ -4824,7 +4824,7 @@ def test_link_merge_all_mixed_clean_and_conflict(new_lore_repo):
     link_b = new_lore_repo()
     with link_b.open_file("b-shared.txt", "w+") as f:
         f.writelines(["b base\n"])
-    link_b.stage()
+    link_b.stage(scan=True)
     link_b.commit("Initial link B commit")
     link_b.push()
 
@@ -4841,7 +4841,7 @@ def test_link_merge_all_mixed_clean_and_conflict(new_lore_repo):
         f.writelines(["feature only\n"])
     with urc.open_file(f"{path_b}/b-shared.txt", "w+") as f:
         f.writelines(["feature B content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch changes")
     urc.push()
 
@@ -4852,7 +4852,7 @@ def test_link_merge_all_mixed_clean_and_conflict(new_lore_repo):
         f.writelines(["main only\n"])
     with urc.open_file(f"{path_b}/b-shared.txt", "w+") as f:
         f.writelines(["main B content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch changes")
     urc.push()
 
@@ -4914,14 +4914,14 @@ def test_link_merge_all_abort_specific_link(new_lore_repo):
 
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main repo base content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link repo base content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link repo commit")
     link_repo.push()
 
@@ -4936,7 +4936,7 @@ def test_link_merge_all_abort_specific_link(new_lore_repo):
         f.writelines(["feature main addition\n"])
     with urc.open_file(f"{link_path}/feature-link-file.txt", "w+") as f:
         f.writelines(["feature link addition\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch changes")
     urc.push()
 
@@ -4945,7 +4945,7 @@ def test_link_merge_all_abort_specific_link(new_lore_repo):
         f.writelines(["main only addition\n"])
     with urc.open_file(f"{link_path}/main-link-file.txt", "w+") as f:
         f.writelines(["main link addition\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch changes")
     urc.push()
 
@@ -5032,7 +5032,7 @@ def test_implicit_link_branch(new_lore_repo):
     # Commit changes in the linked repo on the new branch
     with parent.open_file("my-link/new-file.txt", "w+") as f:
         f.write("new file in link\n")
-    parent.stage()
+    parent.stage(scan=True)
     parent.commit("Commit in link on feature branch")
 
     # Push should succeed with zero-branch link
@@ -5071,21 +5071,21 @@ def test_link_merge_all_multiple_links(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_a = new_lore_repo()
     with link_a.open_file("a-file.txt", "w+") as f:
         f.writelines(["a base\n"])
-    link_a.stage()
+    link_a.stage(scan=True)
     link_a.commit("Initial link A commit")
     link_a.push()
 
     link_b = new_lore_repo()
     with link_b.open_file("b-file.txt", "w+") as f:
         f.writelines(["b base\n"])
-    link_b.stage()
+    link_b.stage(scan=True)
     link_b.commit("Initial link B commit")
     link_b.push()
 
@@ -5104,7 +5104,7 @@ def test_link_merge_all_multiple_links(new_lore_repo):
         f.writelines(["feature a\n"])
     with urc.open_file(f"{path_b}/feature-b.txt", "w+") as f:
         f.writelines(["feature b\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch additions across all repos")
     urc.push()
 
@@ -5116,7 +5116,7 @@ def test_link_merge_all_multiple_links(new_lore_repo):
         f.writelines(["main a\n"])
     with urc.open_file(f"{path_b}/main-b.txt", "w+") as f:
         f.writelines(["main b\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch additions across all repos")
     urc.push()
 
@@ -5150,21 +5150,21 @@ def test_link_merge_all_mixed_eligibility(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_follow = new_lore_repo()
     with link_follow.open_file("follow.txt", "w+") as f:
         f.writelines(["follow base\n"])
-    link_follow.stage()
+    link_follow.stage(scan=True)
     link_follow.commit("Initial follow link commit")
     link_follow.push()
 
     link_fixed = new_lore_repo()
     with link_fixed.open_file("fixed.txt", "w+") as f:
         f.writelines(["fixed base\n"])
-    link_fixed.stage()
+    link_fixed.stage(scan=True)
     link_fixed.commit("Initial fixed link commit")
     link_fixed.push()
 
@@ -5183,14 +5183,14 @@ def test_link_merge_all_mixed_eligibility(new_lore_repo):
     urc.branch_create("feature-branch")
     with urc.open_file(f"{path_follow}/feature-follow.txt", "w+") as f:
         f.writelines(["feature follow\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch addition to follow link")
     urc.push()
 
     urc.branch_switch("main")
     with urc.open_file("main-only.txt", "w+") as f:
         f.writelines(["main only\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch addition")
     urc.push()
 
@@ -5239,21 +5239,21 @@ def test_link_merge_all_preserves_tracked_branches(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_a = new_lore_repo()
     with link_a.open_file("a.txt", "w+") as f:
         f.writelines(["a base\n"])
-    link_a.stage()
+    link_a.stage(scan=True)
     link_a.commit("Initial link A commit")
     link_a.push()
 
     link_b = new_lore_repo()
     with link_b.open_file("b.txt", "w+") as f:
         f.writelines(["b base\n"])
-    link_b.stage()
+    link_b.stage(scan=True)
     link_b.commit("Initial link B commit")
     link_b.push()
 
@@ -5267,7 +5267,7 @@ def test_link_merge_all_preserves_tracked_branches(new_lore_repo):
         f.writelines(["feature a\n"])
     with urc.open_file("libs/b/feature-b.txt", "w+") as f:
         f.writelines(["feature b\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch additions")
     urc.push()
 
@@ -5291,21 +5291,21 @@ def test_link_merge_abort_all_restores_link_pins(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_a = new_lore_repo()
     with link_a.open_file("a.txt", "w+") as f:
         f.writelines(["a base\n"])
-    link_a.stage()
+    link_a.stage(scan=True)
     link_a.commit("Initial link A commit")
     link_a.push()
 
     link_b = new_lore_repo()
     with link_b.open_file("b.txt", "w+") as f:
         f.writelines(["b base\n"])
-    link_b.stage()
+    link_b.stage(scan=True)
     link_b.commit("Initial link B commit")
     link_b.push()
 
@@ -5322,7 +5322,7 @@ def test_link_merge_abort_all_restores_link_pins(new_lore_repo):
         f.writelines(["feature a\n"])
     with urc.open_file("libs/b/feature-b.txt", "w+") as f:
         f.writelines(["feature b\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch additions")
     urc.push()
 
@@ -5378,14 +5378,14 @@ def test_link_merge_all_no_link_changes(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link content\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -5401,7 +5401,7 @@ def test_link_merge_all_no_link_changes(new_lore_repo):
     urc.branch_create("feature-branch")
     with urc.open_file("feature-main.txt", "w+") as f:
         f.writelines(["feature main\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch main-only addition")
     urc.push()
 
@@ -5409,7 +5409,7 @@ def test_link_merge_all_no_link_changes(new_lore_repo):
     urc.branch_switch("main")
     with urc.open_file("main-only.txt", "w+") as f:
         f.writelines(["main only\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch main-only addition")
     urc.push()
 
@@ -5439,14 +5439,14 @@ def test_link_merge_all_sequential(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link base\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -5461,7 +5461,7 @@ def test_link_merge_all_sequential(new_lore_repo):
         f.writelines(["round1 main\n"])
     with urc.open_file(f"{link_path}/round1-link.txt", "w+") as f:
         f.writelines(["round1 link\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Round 1 additions")
     urc.push()
 
@@ -5482,7 +5482,7 @@ def test_link_merge_all_sequential(new_lore_repo):
         f.writelines(["round2 main\n"])
     with urc.open_file(f"{link_path}/round2-link.txt", "w+") as f:
         f.writelines(["round2 link\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Round 2 additions")
     urc.push()
 
@@ -5510,14 +5510,14 @@ def test_link_merge_all_push_and_clone(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link base\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -5530,14 +5530,14 @@ def test_link_merge_all_push_and_clone(new_lore_repo):
     urc.branch_create("feature-branch")
     with urc.open_file(f"{link_path}/feature-only.txt", "w+") as f:
         f.writelines(["feature only\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature addition in linked repo")
     urc.push()
 
     urc.branch_switch("main")
     with urc.open_file(f"{link_path}/main-only.txt", "w+") as f:
         f.writelines(["main only\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main addition in linked repo")
     urc.push()
 
@@ -5559,14 +5559,14 @@ def test_link_merge_abort_ignore_links_no_conflicts(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link base\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -5581,14 +5581,14 @@ def test_link_merge_abort_ignore_links_no_conflicts(new_lore_repo):
         f.writelines(["feature link\n"])
     with urc.open_file("feature-main.txt", "w+") as f:
         f.writelines(["feature main\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature additions")
     urc.push()
 
     urc.branch_switch("main")
     with urc.open_file(f"{link_path}/main-link.txt", "w+") as f:
         f.writelines(["main link\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main addition")
     urc.push()
 
@@ -5635,14 +5635,14 @@ def test_link_merge_abort_ignore_links_with_link_conflicts(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("shared.txt", "w+") as f:
         f.writelines(["link base\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -5655,7 +5655,7 @@ def test_link_merge_abort_ignore_links_with_link_conflicts(new_lore_repo):
     urc.branch_create("feature-branch")
     with urc.open_file(f"{link_path}/shared.txt", "w+") as f:
         f.writelines(["feature content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature modifies shared.txt")
     urc.push()
 
@@ -5663,7 +5663,7 @@ def test_link_merge_abort_ignore_links_with_link_conflicts(new_lore_repo):
     urc.branch_switch("main")
     with urc.open_file(f"{link_path}/shared.txt", "w+") as f:
         f.writelines(["main content\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main modifies shared.txt")
     urc.push()
 
@@ -5725,14 +5725,14 @@ def test_link_merge_start_ignore_links(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link base\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -5746,14 +5746,14 @@ def test_link_merge_start_ignore_links(new_lore_repo):
         f.writelines(["feature only main\n"])
     with urc.open_file(f"{link_path}/feature-link.txt", "w+") as f:
         f.writelines(["feature only in link\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch additions")
     urc.push()
 
     urc.branch_switch("main")
     with urc.open_file("main-only.txt", "w+") as f:
         f.writelines(["main only\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch additions")
     urc.push()
 
@@ -5803,14 +5803,14 @@ def test_link_merge_start_ignore_links_link_conflict(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("shared.txt", "w+") as f:
         f.writelines(["base\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -5822,14 +5822,14 @@ def test_link_merge_start_ignore_links_link_conflict(new_lore_repo):
     urc.branch_create("feature-branch")
     with urc.open_file(f"{link_path}/shared.txt", "w+") as f:
         f.writelines(["feature\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature branch link change")
     urc.push()
 
     urc.branch_switch("main")
     with urc.open_file(f"{link_path}/shared.txt", "w+") as f:
         f.writelines(["main\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main branch link change")
     urc.push()
 
@@ -5875,14 +5875,14 @@ def test_link_merge_into_ignore_links(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link base\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -5903,7 +5903,7 @@ def test_link_merge_into_ignore_links(new_lore_repo):
         f.writelines(["feature only\n"])
     with urc.open_file(f"{link_path}/feature-link.txt", "w+") as f:
         f.writelines(["feature link\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature changes")
     urc.push()
 
@@ -5946,14 +5946,14 @@ def test_link_merge_start_ignore_links_link_mutex(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_repo = new_lore_repo()
     with link_repo.open_file("link-file.txt", "w+") as f:
         f.writelines(["link\n"])
-    link_repo.stage()
+    link_repo.stage(scan=True)
     link_repo.commit("Initial link commit")
     link_repo.push()
 
@@ -5965,7 +5965,7 @@ def test_link_merge_start_ignore_links_link_mutex(new_lore_repo):
     urc.branch_create("feature-branch")
     with urc.open_file("f.txt", "w+") as f:
         f.writelines(["f\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature change")
     urc.push()
 
@@ -5995,21 +5995,21 @@ def test_link_merge_abort_all_then_resume_multiple_links(new_lore_repo):
     urc: Lore = new_lore_repo()
     with urc.open_file("main-file.txt", "w+") as f:
         f.writelines(["main base\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Initial main commit")
     urc.push()
 
     link_a = new_lore_repo()
     with link_a.open_file("a-file.txt", "w+") as f:
         f.writelines(["a base\n"])
-    link_a.stage()
+    link_a.stage(scan=True)
     link_a.commit("Initial link A commit")
     link_a.push()
 
     link_b = new_lore_repo()
     with link_b.open_file("b-file.txt", "w+") as f:
         f.writelines(["b base\n"])
-    link_b.stage()
+    link_b.stage(scan=True)
     link_b.commit("Initial link B commit")
     link_b.push()
 
@@ -6028,7 +6028,7 @@ def test_link_merge_abort_all_then_resume_multiple_links(new_lore_repo):
         f.writelines(["feature a\n"])
     with urc.open_file(f"{path_b}/feature-b.txt", "w+") as f:
         f.writelines(["feature b\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Feature additions across all repos")
     urc.push()
 
@@ -6040,7 +6040,7 @@ def test_link_merge_abort_all_then_resume_multiple_links(new_lore_repo):
         f.writelines(["main a\n"])
     with urc.open_file(f"{path_b}/main-b.txt", "w+") as f:
         f.writelines(["main b\n"])
-    urc.stage()
+    urc.stage(scan=True)
     urc.commit("Main additions across all repos")
     urc.push()
 
@@ -6117,7 +6117,7 @@ def test_link_scoped_commit_subdirectory_source_path_translation(new_lore_repo):
     source_repo.make_dirs("FolderProvidingLink")
     with source_repo.open_file("FolderProvidingLink/SharedFile.txt", "w+") as f:
         f.writelines(["AAAA\n"])
-    source_repo.stage()
+    source_repo.stage(scan=True)
     source_repo.commit("Initial shared file in FolderProvidingLink")
     source_repo.push()
 
@@ -6127,7 +6127,7 @@ def test_link_scoped_commit_subdirectory_source_path_translation(new_lore_repo):
     # a different name than the source folder.
     receiving_repo: Lore = new_lore_repo()
     receiving_repo.make_dirs("FolderReceivingLink")
-    receiving_repo.stage()
+    receiving_repo.stage(scan=True)
     receiving_repo.commit("Create FolderReceivingLink")
     receiving_repo.push()
 

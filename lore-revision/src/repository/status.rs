@@ -264,7 +264,18 @@ impl EventError for StatusError {
 pub struct StatusOptions {
     // Include staged or not
     pub staged: bool,
-    // Scan filesystem for changes and set/clear dirty flags
+    /// Reconcile against the filesystem and refresh dirty tracking.
+    ///
+    /// When `false` (default), status reports the currently tracked state:
+    /// the staged revision (if any) plus all files and directories marked
+    /// dirty in the repository. No filesystem reads are performed beyond the
+    /// existing dirty flags.
+    ///
+    /// When `true`, the filesystem is walked under each requested path,
+    /// every file is reconciled against the current revision, and dirty
+    /// flags are set or cleared accordingly. The refreshed flags are
+    /// persisted in the staged state so subsequent operations see an
+    /// accurate picture without rescanning.
     pub scan: bool,
     // Drop the existing staged anchor before computing status.
     // Combine with `scan` to scan from a clean slate.

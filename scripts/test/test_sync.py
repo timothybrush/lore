@@ -64,7 +64,7 @@ def test_sync(new_lore_repo):
         output_file.write(os.urandom(345678901))
 
     # Stage the files
-    repo.stage()
+    repo.stage(scan=True)
 
     # Commit the files
     repo.commit("Test commit", local=True)
@@ -77,7 +77,7 @@ def test_sync(new_lore_repo):
         output_file.write(os.urandom(100))
 
     # Stage the files offline
-    repo.stage(offline=True)
+    repo.stage(scan=True, offline=True)
 
     # Commit the files offline
     repo.commit(offline=True)
@@ -118,7 +118,7 @@ def test_sync(new_lore_repo):
     clone.status()
 
     # Stage
-    clone.stage()
+    clone.stage(scan=True)
 
     # Status
     clone.status()
@@ -188,7 +188,7 @@ def test_sync(new_lore_repo):
         modify_file.write(os.urandom(64))
 
     # Stage the files
-    repo.stage()
+    repo.stage(scan=True)
 
     # Commit the files
     repo.commit("Another test commit", local=True)
@@ -241,7 +241,7 @@ def test_sync(new_lore_repo):
         output_file.write(os.urandom(123))
 
     # Stage the files
-    repo.stage()
+    repo.stage(scan=True)
 
     # Commit the files
     repo.commit("Diverge source")
@@ -255,7 +255,7 @@ def test_sync(new_lore_repo):
         output_file.write(os.urandom(1234))
 
     # Stage the files
-    clone.stage()
+    clone.stage(scan=True)
 
     # Commit the files
     clone.commit("Diverge destination")
@@ -274,7 +274,7 @@ def test_sync(new_lore_repo):
         output_file.write(os.urandom(1234))
 
     # Stage the files
-    repo.stage()
+    repo.stage(scan=True)
 
     # Commit the files
     repo.commit("Diverge source")
@@ -298,7 +298,7 @@ def test_sync(new_lore_repo):
     with repo.open_file(subdir_file, "w+b") as output_file:
         output_file.write(os.urandom(87654))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Add subdirectory file", offline=True)
     repo.push()
     repo.repository_verify()
@@ -315,7 +315,7 @@ def test_sync(new_lore_repo):
     # Delete the directory in source repo
     shutil.rmtree(os.path.join(repo.path, test_dir))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Delete subdirectory")
     repo.push()
     repo.repository_verify()
@@ -352,12 +352,12 @@ def test_sync(new_lore_repo):
     with clone.open_file(diverge2_file, "w+b") as output_file:
         output_file.write(os.urandom(17653))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Add source file", local=True)
     repo.push()
     repo.repository_verify()
 
-    clone.stage()
+    clone.stage(scan=True)
     clone.commit("Add destination file")
     # Push should fail since we're divergent
     with pytest.raises(BranchDivergedError):
@@ -386,12 +386,12 @@ def test_sync(new_lore_repo):
     with clone.open_file(diverge1_file, "w+b") as output_file:
         output_file.write(os.urandom(17653))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Modify source file", local=True)
     repo.push()
     repo.repository_verify()
 
-    clone.stage()
+    clone.stage(scan=True)
     clone.commit("Modify destination file")
     # Push should fail since we're divergent
     with pytest.raises(BranchDivergedError):
@@ -419,7 +419,7 @@ def test_sync(new_lore_repo):
     with repo.open_file(diverge1_file, "w+b") as output_file:
         output_file.write(os.urandom(17653))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Modify source file", local=True)
     repo.push()
     repo.repository_verify()
@@ -444,7 +444,7 @@ def test_sync(new_lore_repo):
     with repo.open_file(diverge1_file, "w+b") as output_file:
         output_file.write(os.urandom(17653))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Modify source file again", local=True)
     repo.push()
     repo.repository_verify()
@@ -462,7 +462,7 @@ def test_sync(new_lore_repo):
     with clone.open_file(diverge1_file, "w+b") as output_file:
         output_file.write(os.urandom(17653))
 
-    clone.stage()
+    clone.stage(scan=True)
     clone.commit("Modify source file again", local=True)
     clone.repository_verify()
 
@@ -495,7 +495,7 @@ def test_sync(new_lore_repo):
     with repo.open_file(diverge1_file, "w+b") as output_file:
         output_file.write(os.urandom(17653))
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Modify source file again", local=True)
     repo.push()
     repo.repository_verify()
@@ -503,7 +503,7 @@ def test_sync(new_lore_repo):
     with clone.open_file(diverge2_file, "w+b") as output_file:
         output_file.write(os.urandom(1765))
 
-    clone.stage()
+    clone.stage(scan=True)
     clone.commit("Modify destination file to diverge", local=True)
     clone.repository_verify()
 

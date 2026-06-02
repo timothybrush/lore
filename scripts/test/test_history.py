@@ -21,14 +21,14 @@ def test_history(new_lore_repo):
         output_file.writelines(["One line\n", "Another line\n", "Third line\n"])
 
     # Stage and commit the file
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit(local=True)
 
     # Add some more revisions
     for i in range(5):
         with repo.open_file(text_file, "a+") as output_file:
             output_file.writelines([f"Adding line {i + 4}\n"])
-        repo.stage()
+        repo.stage(scan=True)
         repo.commit(f"Test commit {i + 2}", local=True)
 
     # Push changes
@@ -40,7 +40,7 @@ def test_history(new_lore_repo):
     for i in range(5):
         with clone.open_file(text_file, "a+") as output_file:
             output_file.writelines([f"Adding line {i + 9}\n"])
-        clone.stage()
+        clone.stage(scan=True)
         clone.commit(f"Test commit {i + 7}", local=True)
 
     clone.sync("main@4")
@@ -60,14 +60,14 @@ def test_file_history_oneline(new_lore_repo):
     # Create the file and commit with a message
     with repo.open_file(text_file, "w+") as f:
         f.write("Initial content\n")
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("First commit", local=True)
 
     # Modify and commit a few more times
     for i in range(3):
         with repo.open_file(text_file, "a+") as f:
             f.write(f"Line {i + 2}\n")
-        repo.stage()
+        repo.stage(scan=True)
         repo.commit(f"Commit number {i + 2}", local=True)
 
     repo.push()
@@ -106,7 +106,7 @@ def test_history_only_branch(new_lore_repo):
     for i in range(3):
         with repo.open_file(text_file, "w+") as f:
             f.write(f"Main content {i}\n")
-        repo.stage()
+        repo.stage(scan=True)
         repo.commit(f"Main commit {i + 1}", local=True)
 
     repo.push()
@@ -121,7 +121,7 @@ def test_history_only_branch(new_lore_repo):
     for i in range(4):
         with repo.open_file(text_file, "w+") as f:
             f.write(f"Feature content {i}\n")
-        repo.stage()
+        repo.stage(scan=True)
         repo.commit(f"Feature commit {i + 1}", local=True)
 
     repo.push()
@@ -223,7 +223,7 @@ def test_history_date_filter(new_lore_repo):
     for i in range(3):
         with repo.open_file(text_file, "w+") as f:
             f.write(f"Content {i}\n")
-        repo.stage()
+        repo.stage(scan=True)
         repo.commit(f"Early commit {i + 1}", local=True)
 
     repo.push()
@@ -235,7 +235,7 @@ def test_history_date_filter(new_lore_repo):
     for i in range(2):
         with repo.open_file(text_file, "w+") as f:
             f.write(f"Later content {i}\n")
-        repo.stage()
+        repo.stage(scan=True)
         repo.commit(f"Late commit {i + 1}", local=True)
 
     repo.push()

@@ -24,7 +24,7 @@ def test_p4shelve(new_lore_repo):
         output_file.write(os.urandom(4096))
 
     # Stage the files
-    repo.stage()
+    repo.stage(scan=True)
 
     # Set p4-changelist revision metadata
     p4_changelist = "123456789"
@@ -54,7 +54,7 @@ def test_p4shelve(new_lore_repo):
     subdir_name = "subdir"
     repo.make_dirs(subdir_name)
 
-    repo.stage()
+    repo.stage(scan=True)
     repo.commit("Feature branch - add, delete, modify")
     repo.branch_push()
 
