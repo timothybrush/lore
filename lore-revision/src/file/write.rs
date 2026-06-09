@@ -349,6 +349,7 @@ pub async fn write_address(
 
 #[cfg(test)]
 mod tests {
+    #[cfg(not(target_os = "windows"))]
     use super::*;
 
     #[test]

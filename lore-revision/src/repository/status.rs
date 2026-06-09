@@ -424,8 +424,12 @@ async fn file_size_from_node_change_path(
         // working directory. Treat the concurrent deletion as benign and
         // report size 0 (matching the `FileAction::Delete` branch above)
         // rather than failing the whole status command with an Internal error.
+        // On Windows a file mid-deletion stats as PermissionDenied rather than
+        // NotFound, so treat that as benign too.
         if let Err(err) = &result
-            && err.kind() == std::io::ErrorKind::NotFound
+            && (err.kind() == std::io::ErrorKind::NotFound
+                || (cfg!(target_family = "windows")
+                    && err.kind() == std::io::ErrorKind::PermissionDenied))
         {
             return Ok(0);
         }
