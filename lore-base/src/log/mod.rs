@@ -7,18 +7,25 @@ use core::fmt;
 use serde::Deserialize;
 use serde::Serialize;
 
+/// Severity level of a log message.
 /// cbindgen:prefix-with-name
 /// cbindgen:rename-all=ScreamingSnakeCase
 #[repr(C)]
 #[derive(Debug, Copy, Clone, Default, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum LoreLogLevel {
+    /// No logging.
     #[default]
     None = 0,
+    /// Most detailed tracing messages.
     Trace = 1,
+    /// Debugging messages.
     Debug = 2,
+    /// Informational messages.
     Info = 3,
+    /// Warnings about unexpected but recoverable situations.
     Warn = 4,
+    /// Errors.
     Error = 5,
 }
 

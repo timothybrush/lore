@@ -7,20 +7,31 @@ use zerocopy::IntoBytes;
 use super::BranchId;
 use super::Hash;
 
+/// A branch paired with one revision on that branch.
 #[derive(Clone, Debug, Default, PartialEq, FromBytes, IntoBytes, Immutable)]
 pub struct BranchPoint {
+    /// Branch identifier.
     pub branch: BranchId,
+    /// Revision hash on the branch.
     pub revision: Hash,
 }
 
+/// Descriptive information about a branch.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct BranchMetadata {
+    /// Branch identifier.
     pub id: BranchId,
+    /// Branch name.
     pub name: String,
+    /// Category the branch belongs to.
     pub category: String,
+    /// Hash of the latest revision on the branch.
     pub latest: Hash,
+    /// Name of the user who created the branch.
     pub creator: String,
+    /// Creation timestamp.
     pub created: u64,
+    /// Ordered list of branch points the branch is built on.
     pub stack: Vec<BranchPoint>,
 }
 

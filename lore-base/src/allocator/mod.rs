@@ -20,20 +20,29 @@ pub use rpmalloc::RpmallocGlobalStatistics;
 pub use rpmalloc::RpmallocHeapAllocator;
 pub use rpmalloc::RpmallocHeapStatistics;
 
+/// Function that allocates a block of memory with the given alignment and size.
 pub type LoreAllocFn = unsafe extern "C" fn(align: usize, size: usize) -> *mut std::ffi::c_void;
+/// Function that allocates a zeroed block of memory with the given alignment and size.
 pub type LoreAllocZeroedFn =
     unsafe extern "C" fn(align: usize, size: usize) -> *mut std::ffi::c_void;
+/// Function that resizes an existing block of memory to a new size.
 pub type LoreReallocFn = unsafe extern "C" fn(
     ptr: *mut std::ffi::c_void,
     align: usize,
     size: usize,
 ) -> *mut std::ffi::c_void;
+/// Function that frees a previously allocated block of memory.
 pub type LoreDeallocFn = unsafe extern "C" fn(ptr: *mut std::ffi::c_void);
 
+/// Set of memory functions supplied by the caller for the library to use.
 pub struct ExternalAllocator {
+    /// Allocation function.
     pub alloc: LoreAllocFn,
+    /// Zeroed allocation function.
     pub alloc_zeroed: LoreAllocZeroedFn,
+    /// Reallocation function.
     pub realloc: LoreReallocFn,
+    /// Free function.
     pub dealloc: LoreDeallocFn,
 }
 

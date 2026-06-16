@@ -281,11 +281,14 @@ impl FilterInstance {
     }
 }
 
+/// Data for the event emitted when a path is excluded by a filter.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFilterExcludeEventData {
+    /// Reason the path was excluded.
     pub reason: u8,
+    /// Path that was excluded.
     pub path: LoreString,
 }
 

@@ -95,17 +95,21 @@ impl EventError for ReleaseError {
     }
 }
 
+/// Data for an event reporting a path whose lock was released.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLockFileReleaseEventData {
+    /// Path whose lock was released.
     pub path: LoreString,
 }
 
+/// Data for an event reporting that no matching lock was found to release.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLockFileReleaseNotFoundEventData {
+    /// Placeholder field; carries no meaningful value.
     _unused: u32,
 }
 

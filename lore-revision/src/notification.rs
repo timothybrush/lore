@@ -27,73 +27,98 @@ pub enum NotificationError {}
 
 impl crate::event::EventError for NotificationError {}
 
+/// Data for a notification that a branch received a new revision.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreNotificationBranchPushedEventData {
+    /// Hash of the pushed revision.
     pub revision: Hash,
+    /// Sequence number of the pushed revision.
     pub revision_number: u64,
+    /// Identifier of the branch that received the revision.
     pub branch: BranchId,
+    /// Identifier of the user that pushed the revision.
     pub user_id: LoreString,
 }
 
+/// Data for a notification that a branch was created.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreNotificationBranchCreatedEventData {
+    /// Identifier of the created branch.
     pub branch: BranchId,
 }
 
+/// Data for a notification that a branch was deleted.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreNotificationBranchDeletedEventData {
+    /// Identifier of the deleted branch.
     pub branch: BranchId,
 }
 
+/// Data for a notification that resources were locked.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreNotificationResourceLockedEventData {
+    /// Identifier of the user that locked the resources.
     pub user_id: LoreString,
+    /// Identifier of the branch the resources belong to.
     pub branch: BranchId,
+    /// Paths of the locked resources.
     pub paths: LoreArray<LoreString>,
 }
 
+/// Data for a notification that resources were unlocked.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreNotificationResourceUnlockedEventData {
+    /// Identifier of the user that unlocked the resources.
     pub user_id: LoreString,
+    /// Identifier of the branch the resources belong to.
     pub branch: BranchId,
+    /// Paths of the unlocked resources.
     pub paths: LoreArray<LoreString>,
 }
 
+/// Data for a notification carrying a text message.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreNotificationTextEventData {
+    /// Text content of the notification.
     pub text: LoreString,
 }
 
+/// Data for a notification carrying binary content.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreNotificationBinaryDataEventData {
+    /// Binary content of the notification.
     pub data: LoreArray<u8>,
 }
 
+/// Data for a notification that a subscription to a repository was established.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreNotificationSubscribedEventData {
+    /// Identifier of the subscribed repository.
     pub repository: RepositoryId,
 }
 
+/// Data for a notification that a subscription to a repository was removed.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreNotificationUnsubscribedEventData {
+    /// Identifier of the unsubscribed repository.
     pub repository: RepositoryId,
 }
 

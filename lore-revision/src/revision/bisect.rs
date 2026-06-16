@@ -20,13 +20,18 @@ use crate::revision::sync::sync;
 use crate::state::State;
 use crate::util::serde::u8_as_bool;
 
+/// Progress of a bisect search across a range of revisions.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionBisectEventData {
+    /// Revision number at the start of the search range.
     pub start_revision_number: u64,
+    /// Revision number selected to test next.
     pub target_revision_number: u64,
+    /// Revision number at the end of the search range.
     pub end_revision_number: u64,
+    /// Flag indicating the search has finished.
     #[serde(with = "u8_as_bool")]
     pub done: u8,
 }

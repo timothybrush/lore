@@ -38,60 +38,92 @@ use crate::state::State;
 use crate::store::StoreMatch;
 use crate::util::path::RelativePath;
 
+/// Data for the event emitted when state verification starts.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryVerifyStateBeginEventData {
+    /// Placeholder field. The event carries no data.
     pub _unused: u32,
 }
 
+/// Data for the event emitted when state verification finishes.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryVerifyStateEndEventData {
+    /// Identifier of the staged state after healing. Zero when nothing was healed.
     pub healed_staged_state: Hash,
 }
 
+/// One stored copy of a fragment found during fragment verification.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryVerifyFragmentMatchEventData {
+    /// Slot the match was found in.
     pub slot: u32,
+    /// Index of the match within the slot.
     pub index: u32,
+    /// Identifier of the repository the match belongs to.
     pub repository: RepositoryId,
+    /// Hash part of the fragment address.
     pub address_hash: Hash,
+    /// Context part of the fragment address.
     pub address_context: Context,
+    /// Storage flags recorded for the fragment.
     pub flags: u32,
+    /// Stored size of the fragment payload in bytes.
     pub size_payload: u32,
+    /// Size of the fragment content in bytes.
     pub size_content: u64,
+    /// Offset of the fragment within its pack file.
     pub pack_offset: u32,
+    /// Index of the pack file holding the fragment.
     pub pack_file: u32,
+    /// Time the fragment was last accessed, in seconds since the Unix epoch.
     pub last_access: u64,
 }
 
+/// Result of verifying a single fragment, including every stored copy found.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryVerifyFragmentEventData {
+    /// Hash of the fragment that was verified.
     pub hash: Hash,
+    /// Index of the group the fragment belongs to.
     pub group_index: u32,
+    /// Index of the bucket the fragment belongs to.
     pub bucket_index: u32,
+    /// Path of the index file examined for the fragment.
     pub index_path: LoreString,
+    /// Number of entries in the index.
     pub entry_count: u32,
+    /// Number of entries in the pack file.
     pub packfile_entry_count: u32,
+    /// Number of stored copies found for the fragment.
     pub match_count: u32,
+    /// The stored copies found for the fragment.
     pub matches: LoreArray<LoreRepositoryVerifyFragmentMatchEventData>,
+    /// Error message produced during verification. Empty on success.
     pub error: LoreString,
 }
 
+/// Result of verifying a single fragment on the remote.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryVerifyFragmentRemoteEventData {
+    /// Hash part of the fragment address.
     pub address_hash: Hash,
+    /// Context part of the fragment address.
     pub address_context: Context,
+    /// Non-zero when the fragment was found to be corrupted.
     pub corrupted: u8,
+    /// Non-zero when the fragment was healed.
     pub healed: u8,
+    /// Error message produced during verification. Empty on success.
     pub error: LoreString,
 }
 

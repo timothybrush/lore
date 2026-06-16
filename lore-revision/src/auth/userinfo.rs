@@ -44,14 +44,18 @@ impl EventError for UserInfoError {
     }
 }
 
+/// Event data resolving a user identity to a display name.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreAuthUserInfoEventData {
+    /// User identity
     pub id: LoreString,
+    /// Display name for the user
     pub name: LoreString,
 }
 
+/// Event data describing a stored authentication identity.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -264,16 +268,23 @@ mod tests {
     }
 }
 
+/// Event data carrying a user token along with the identity it belongs to.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreAuthUserTokenEventData {
+    /// User identity
     pub id: LoreString,
+    /// Display name for the user
     pub name: LoreString,
+    /// The token string
     pub token: LoreString,
+    /// Preferred username from the token
     pub preferred_username: LoreString,
+    /// Non-zero if the identity is a service account
     #[serde(with = "u8_as_bool")]
     pub flag_service_account: u8,
+    /// Expiry time in milliseconds since UNIX epoch, or 0 if unavailable
     pub expires: u64,
 }
 

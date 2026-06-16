@@ -94,19 +94,25 @@ impl EventError for StatusError {
     }
 }
 
+/// Data for an event that marks the start of a lock status report.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLockFileStatusBeginEventData {
+    /// Number of status entries that follow.
     pub count: u64,
 }
 
+/// Data for an event reporting the lock status of a single path.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLockFileStatusEventData {
+    /// Path the status applies to.
     pub path: LoreString,
+    /// Identifier of the user that holds the lock.
     pub owner: LoreString,
+    /// Timestamp recorded when the lock was acquired.
     pub locked_at: u64,
 }
 

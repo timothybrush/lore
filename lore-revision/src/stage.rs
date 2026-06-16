@@ -62,25 +62,37 @@ use crate::util;
 use crate::util::path::RelativePath;
 use crate::util::path::RelativePathBuf;
 
+/// Data for the event emitted when a stage operation begins.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileStageBeginEventData {
+    /// Number of paths requested for staging.
     pub path_count: usize,
 }
 
+/// Running counts of items processed during a stage operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileStageCountData {
+    /// Number of directories staged as modified.
     pub directory_modify_count: u64,
+    /// Number of directories staged as added.
     pub directory_add_count: u64,
+    /// Number of directories staged as deleted.
     pub directory_delete_count: u64,
+    /// Number of directories staged as moved.
     pub directory_move_count: u64,
+    /// Number of files staged as modified.
     pub file_modify_count: u64,
+    /// Number of files staged as added.
     pub file_add_count: u64,
+    /// Number of files staged as deleted.
     pub file_delete_count: u64,
+    /// Number of files staged as moved.
     pub file_move_count: u64,
+    /// Total number of items processed.
     pub total_count: u64,
 }
 
@@ -115,34 +127,45 @@ impl LoreFileStageCountData {
     }
 }
 
+/// Data for the progress event emitted periodically during a stage operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileStageProgressEventData {
+    /// Current counts of items processed.
     pub count: LoreFileStageCountData,
 }
 
+/// Data for the event emitted when a stage operation completes.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileStageEndEventData {
+    /// Final counts of items processed.
     pub count: LoreFileStageCountData,
 }
 
+/// Data for the event identifying the repository and revision involved in a stage operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileStageRevisionEventData {
+    /// Identifier of the repository.
     pub repository: RepositoryId,
+    /// Revision the files are staged against.
     pub revision: Hash,
 }
 
+/// Data for the event emitted for each file affected by a stage operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileStageFileEventData {
+    /// Previous path of the file, when it was moved.
     pub from_path: LoreString,
+    /// Path of the file.
     pub path: LoreString,
+    /// Action applied to the file.
     pub action: LoreFileAction,
 }
 
@@ -216,6 +239,7 @@ pub struct StageStats {
     task_count: AtomicU64,
 }
 
+/// How a change in path letter case is handled during staging.
 #[derive(Debug, Default, Clone, Copy)]
 #[repr(u32)]
 pub enum StageCaseChange {

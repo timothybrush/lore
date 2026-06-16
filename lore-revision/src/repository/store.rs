@@ -24,6 +24,7 @@ use crate::lore_error;
 use crate::store::StoreMatch;
 use crate::util::serde::u8_as_bool;
 
+/// Result of a query against the immutable store for a single fragment.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

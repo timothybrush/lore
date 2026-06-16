@@ -38,76 +38,101 @@ use crate::revision::sync;
 use crate::state;
 use crate::util::serde::u8_as_bool;
 
+/// Event data reported at the start of the file phase of a restore.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionRestoreFileBeginEventData {
+    /// Number of files to process.
     pub count: usize,
 }
 
+/// Event data reported for a single file during a restore.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionRestoreFileEventData {
+    /// Path of the file.
     pub path: LoreString,
+    /// Action applied to the file.
     pub action: LoreFileAction,
+    /// Size of the file in bytes.
     pub size: u64,
+    /// Flag indicating the entry is a file.
     #[serde(with = "u8_as_bool")]
     pub is_file: u8,
+    /// Flag indicating the entry is a directory.
     #[serde(with = "u8_as_bool")]
     pub is_directory: u8,
+    /// Flag indicating the entry is a module.
     #[serde(with = "u8_as_bool")]
     pub is_module: u8,
 }
 
+/// Event data reported at the end of the file phase of a restore.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionRestoreFileEndEventData {
+    /// Number of files processed.
     pub count: usize,
 }
 
+/// Event data reported at the start of the fragment phase of a restore.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionRestoreFragmentBeginEventData {
+    /// Number of fragments to transfer.
     pub fragments: u64,
 }
 
+/// Event data reported on progress of the fragment phase of a restore.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionRestoreFragmentProgressEventData {
+    /// Number of fragments completed.
     pub complete: u64,
+    /// Total number of fragments.
     pub count: u64,
 }
 
+/// Event data reported at the end of the fragment phase of a restore.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionRestoreFragmentEndEventData {
+    /// Number of fragments transferred.
     pub fragments: u64,
 }
 
+/// Event data reported with the resulting revision of a restore.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionRestoreRevisionEventData {
+    /// Resulting revision hash signature.
     pub revision: Hash,
+    /// Resulting revision number.
     pub revision_number: u64,
 }
 
+/// Event data reported at the start of the sync phase of a restore.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionRestoreSyncBeginEventData {
+    /// Number of changes to apply.
     pub count: usize,
 }
 
+/// Event data reported at the end of the sync phase of a restore.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionRestoreSyncEndEventData {
+    /// Number of changes applied.
     pub count: usize,
 }
 

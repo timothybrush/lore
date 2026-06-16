@@ -50,6 +50,8 @@ use crate::state;
 use crate::util::path::RelativePath;
 use crate::util::serde::u8_as_bool;
 
+/// Revision status of a repository, describing the current, local, and remote
+/// positions of the active branch.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -134,32 +136,46 @@ impl LoreRepositoryStatusRevisionEventData {
     }
 }
 
+/// Status of a single file or node reported by a repository status operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryStatusFileEventData {
+    /// Path of the file relative to the repository root.
     pub path: LoreString,
+    /// Size of the file in bytes.
     pub size: u64,
+    /// Change applied to the file, such as add, modify, delete, or move.
     pub action: LoreFileAction,
+    /// Kind of node: file, directory, or link.
     pub r#type: LoreNodeType,
 
+    /// Non-zero when the change is staged.
     #[serde(with = "u8_as_bool")]
     pub flag_staged: u8,
+    /// Non-zero when the change comes from a merge.
     #[serde(with = "u8_as_bool")]
     pub flag_merged: u8,
+    /// Non-zero when the file is in conflict.
     #[serde(with = "u8_as_bool")]
     pub flag_conflict: u8,
+    /// Non-zero when the conflict is not yet resolved.
     #[serde(with = "u8_as_bool")]
     pub flag_conflict_unresolved: u8,
+    /// Non-zero when the conflict was resolved automatically.
     #[serde(with = "u8_as_bool")]
     pub flag_conflict_automerged: u8,
+    /// Non-zero when the local side was chosen to resolve the conflict.
     #[serde(with = "u8_as_bool")]
     pub flag_conflict_mine: u8,
+    /// Non-zero when the incoming side was chosen to resolve the conflict.
     #[serde(with = "u8_as_bool")]
     pub flag_conflict_theirs: u8,
+    /// Non-zero when the file differs from the recorded state.
     #[serde(with = "u8_as_bool")]
     pub flag_dirty: u8,
 
+    /// Previous path of the file when it was moved or copied. Empty otherwise.
     pub from_path: LoreString,
 }
 
@@ -216,6 +232,7 @@ impl LoreRepositoryStatusFileEventData {
     }
 }
 
+/// Counts of directories and files in the repository tree.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -236,10 +253,15 @@ pub struct LoreRepositoryStatusCountEventData {
 #[derive(Clone, PartialEq, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryStatusSummaryEventData {
+    /// Number of files added.
     pub adds: u64,
+    /// Number of files deleted.
     pub deletes: u64,
+    /// Number of files modified.
     pub modifies: u64,
+    /// Number of files moved.
     pub moves: u64,
+    /// Number of files copied.
     pub copies: u64,
 }
 

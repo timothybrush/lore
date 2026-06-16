@@ -78,116 +78,156 @@ use crate::state::StateNodeChildrenWithNameIterator;
 use crate::util::path::RelativePath;
 use crate::util::serde::u8_as_bool;
 
+/// Data for the event sent when a branch merge starts.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeStartBeginEventData {
+    /// The source branch being merged.
     pub branch: BranchId,
+    /// The source revision being merged.
     pub revision: Hash,
+    /// The sequential number of the source revision.
     pub revision_number: u64,
 }
 
+/// Data for the event sent when a branch merge finishes.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeStartEndEventData {
+    /// Progress totals collected while applying the merge.
     pub stats: LoreRevisionSyncProgressEventData,
+    /// The revision produced by the merge.
     pub signature: Hash,
+    /// Set when the merge produced file conflicts.
     pub has_conflicts: u8,
 }
 
+/// Data for the event sent when a branch merge abort starts.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeAbortBeginEventData {
+    /// The staged revision being discarded.
     pub state_staged_revision: Hash,
+    /// The current revision the working state returns to.
     pub state_current_revision: Hash,
 }
 
+/// Data for the event sent when a branch merge abort finishes.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeAbortEndEventData {
+    /// Placeholder field. The event carries no payload.
     pub _unused: u32,
 }
 
+/// Data for the event sent before files are merged into the working tree.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeIntoFileBeginEventData {
+    /// The number of files to merge.
     pub count: usize,
 }
 
+/// Data for the event sent for each file merged into the working tree.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeIntoFileEventData {
+    /// The path of the file.
     pub path: LoreString,
+    /// The action applied to the file.
     pub action: LoreFileAction,
+    /// The size of the file in bytes.
     pub size: u64,
+    /// Set when the entry is a regular file.
     #[serde(with = "u8_as_bool")]
     pub is_file: u8,
+    /// Set when the entry is a directory.
     #[serde(with = "u8_as_bool")]
     pub is_directory: u8,
+    /// Set when the entry is a link.
     #[serde(with = "u8_as_bool")]
     pub is_link: u8,
 }
 
+/// Data for the event sent after files are merged into the working tree.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeIntoFileEndEventData {
+    /// The number of files merged.
     pub count: usize,
 }
 
+/// Data for the event sent before the merge synchronizes revisions.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeIntoSyncBeginEventData {
+    /// The number of revisions to synchronize.
     pub count: usize,
 }
 
+/// Data for the event sent after the merge synchronizes revisions.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeIntoSyncEndEventData {
+    /// The number of revisions synchronized.
     pub count: usize,
 }
 
+/// Data for the event sent before the merge transfers fragments.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeIntoFragmentBeginEventData {
+    /// The number of fragments to transfer.
     pub fragments: u64,
 }
 
+/// Data for the event sent as the merge transfers fragments.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeIntoFragmentProgressEventData {
+    /// The number of fragments transferred so far.
     pub complete: u64,
+    /// The total number of fragments to transfer.
     pub count: u64,
 }
 
+/// Data for the event sent after the merge transfers fragments.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeIntoFragmentEndEventData {
+    /// The number of fragments transferred.
     pub fragments: u64,
 }
 
+/// Data for the event sent for each revision merged into the working tree.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeIntoRevisionEventData {
+    /// The revision merged.
     pub revision: Hash,
+    /// The sequential number of the revision.
     pub revision_number: u64,
 }
 
+/// Data for the event sent for each file the merge left in conflict.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeConflictFileEventData {
+    /// The path of the conflicted file.
     pub path: LoreString,
 }
 
@@ -207,42 +247,56 @@ pub enum LinkMergeSkipReason {
     NoContentDivergence = 3,
 }
 
+/// Data for the event sent when a link is skipped during a merge.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeLinkSkippedEventData {
+    /// The mount path of the skipped link.
     pub link_path: LoreString,
+    /// The repository of the skipped link.
     pub repository: RepositoryId,
+    /// The reason the link was skipped.
     pub reason: u8,
 }
 
+/// Data for the event sent when a file in a merge is marked unresolved.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeUnresolveFileEventData {
+    /// The path of the file marked unresolved.
     pub path: LoreString,
 }
 
+/// Data for the event sent when a revision in a merge is marked unresolved.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeUnresolveRevisionEventData {
+    /// The repository of the revision marked unresolved.
     pub repository: RepositoryId,
+    /// The revision marked unresolved.
     pub revision: Hash,
 }
 
+/// Data for the event sent when a file in a merge is marked resolved.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeResolveFileEventData {
+    /// The path of the file marked resolved.
     pub path: LoreString,
 }
 
+/// Data for the event sent when a revision in a merge is marked resolved.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMergeResolveRevisionEventData {
+    /// The repository of the revision marked resolved.
     pub repository: RepositoryId,
+    /// The revision marked resolved.
     pub revision: Hash,
 }
 

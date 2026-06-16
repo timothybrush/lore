@@ -90,15 +90,22 @@ use crate::util::path::PathError;
 use crate::util::path::RelativePath;
 use crate::util::path::make_absolute;
 
+/// Details of the branch involved in a branch switch.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchSwitchData {
+    /// Branch identifier.
     pub id: BranchId,
+    /// Branch name.
     pub name: LoreString,
+    /// Latest revision known locally for the branch.
     pub latest_local: Hash,
+    /// Latest revision known on the remote for the branch.
     pub latest_remote: Hash,
+    /// Revision the branch is switched to.
     pub revision: Hash,
+    /// Where the branch exists: local, remote, or both.
     pub location: LoreBranchLocation,
 }
 
@@ -122,40 +129,52 @@ impl LoreBranchSwitchData {
     }
 }
 
+/// Data for the event emitted when a branch switch starts.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchSwitchBeginEventData {
+    /// Details of the branch being switched to.
     pub branch: LoreBranchSwitchData,
 }
 
+/// Data for the event emitted when a branch switch finishes.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchSwitchEndEventData {
+    /// Details of the branch that was switched to.
     pub branch: LoreBranchSwitchData,
 }
 
+/// Data for the event emitted when a repository dump starts.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryDumpBeginEventData {
+    /// Repository identifier.
     pub repository: RepositoryId,
+    /// Revision being dumped.
     pub revision: Hash,
 }
 
+/// Data for the event emitted when a repository dump finishes.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryDumpEndEventData {
+    /// Placeholder field. The event carries no data.
     pub _unused: u32,
 }
 
+/// Data for the event emitted when a repository configuration value is read.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryConfigGetEventData {
+    /// Configuration key.
     pub key: LoreString,
+    /// Configuration value for the key.
     pub value: LoreString,
 }
 

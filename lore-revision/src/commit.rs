@@ -79,26 +79,39 @@ use crate::util;
 use crate::util::path::RelativePath;
 use crate::util::serde::u8_as_bool;
 
+/// Event data reported at the start of a commit.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionCommitBeginEventData {
+    /// Unused placeholder field.
     pub _unused: u32,
 }
 
+/// Progress counters describing how far a commit has advanced.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionCommitCountData {
+    /// Number of directories processed so far.
     pub directory_count: u64,
+    /// Total number of directories to process.
     pub directory_total: u64,
+    /// Number of files processed so far.
     pub file_count: u64,
+    /// Total number of files to process.
     pub file_total: u64,
+    /// Number of directories deleted.
     pub directory_delete_count: u64,
+    /// Number of files modified.
     pub file_modify_count: u64,
+    /// Number of files deleted.
     pub file_delete_count: u64,
+    /// Number of content bytes transferred so far.
     pub bytes_transferred: u64,
+    /// Total number of content bytes to transfer.
     pub bytes_total: u64,
+    /// Set when file and directory discovery has finished.
     #[serde(with = "u8_as_bool")]
     pub discovery_complete: u8,
 }
@@ -123,29 +136,40 @@ impl LoreRevisionCommitCountData {
     }
 }
 
+/// Event data reporting commit progress.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionCommitProgressEventData {
+    /// Current progress counters.
     pub count: LoreRevisionCommitCountData,
 }
 
+/// Event data reported at the end of a commit.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionCommitEndEventData {
+    /// Final progress counters.
     pub count: LoreRevisionCommitCountData,
 }
 
+/// Event data describing a revision produced by a commit.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionCommitRevisionEventData {
+    /// Identifier of the repository the revision belongs to.
     pub repository: RepositoryId,
+    /// Identifier of the branch the revision was committed on.
     pub branch: BranchId,
+    /// Signature of the committed revision.
     pub revision: Hash,
+    /// Sequential number of the revision.
     pub revision_number: u64,
+    /// Signature of the first parent revision.
     pub parent: Hash,
+    /// Signature of the second parent revision, set for a merge.
     pub parent_other: Hash,
 }
 

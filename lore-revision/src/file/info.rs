@@ -105,29 +105,44 @@ impl EventError for InfoError {
     }
 }
 
+/// Data for the event reporting information about a single file or directory.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileInfoEventData {
+    /// Path of the file or directory.
     pub path: LoreString,
+    /// Context identifying the file or directory.
     pub context: Context,
+    /// Content hash of the file or directory.
     pub hash: Hash,
+    /// Set when the entry is a file.
     #[serde(with = "u8_as_bool")]
     pub is_file: u8,
+    /// Set when the entry is a directory.
     #[serde(with = "u8_as_bool")]
     pub is_dir: u8,
+    /// Set when the entry has been modified.
     #[serde(with = "u8_as_bool")]
     pub flag_modified: u8,
+    /// Set when the entry has been deleted.
     #[serde(with = "u8_as_bool")]
     pub flag_deleted: u8,
+    /// Set when the entry has been added.
     #[serde(with = "u8_as_bool")]
     pub flag_added: u8,
+    /// Set when the entry is in conflict.
     #[serde(with = "u8_as_bool")]
     pub flag_conflict: u8,
+    /// File mode bits.
     pub mode: u16,
+    /// Size of the entry in the repository, in bytes.
     pub size: u64,
+    /// Size of the entry on the local filesystem, in bytes.
     pub local_size: u64,
+    /// Content hash of the entry on the local filesystem.
     pub local_hash: Hash,
+    /// Size of the entry after filters are applied, in bytes.
     pub filter_size: u64,
 }
 

@@ -175,28 +175,43 @@ impl Drop for RepositoryCloneGuard {
     }
 }
 
+/// Data for the event emitted when a clone starts.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryCloneBeginEventData {
+    /// Identifier of the repository being cloned.
     pub repository: RepositoryId,
+    /// Name of the branch being cloned.
     pub branch: LoreString,
+    /// Revision being cloned.
     pub revision: Hash,
+    /// Local path the clone is written to.
     pub path: LoreString,
 }
 
+/// Progress counts for a clone operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryCloneCountData {
+    /// Number of files finished.
     pub file_complete: u64,
+    /// Number of files kept as they already matched.
     pub file_retain: u64,
+    /// Number of files replaced.
     pub file_replace: u64,
+    /// Total number of files discovered to process.
     pub file_count: u64,
+    /// Number of files currently being processed.
     pub file_inflight: u64,
+    /// Number of fragment fetches currently in flight.
     pub fragment_inflight: u64,
+    /// Number of bytes transferred so far.
     pub bytes_transferred: u64,
+    /// Total number of bytes to transfer.
     pub bytes_total: u64,
+    /// Non-zero once file discovery has finished.
     #[serde(with = "u8_as_bool")]
     pub discovery_complete: u8,
 }
@@ -218,19 +233,25 @@ impl LoreRepositoryCloneCountData {
     }
 }
 
+/// Data for the event emitted to report clone progress.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryCloneProgressEventData {
+    /// Current progress counts.
     pub count: LoreRepositoryCloneCountData,
 }
 
+/// Data for the event emitted when a clone finishes.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryCloneEndEventData {
+    /// Name of the branch that was cloned.
     pub branch: LoreString,
+    /// Revision that was cloned.
     pub revision: Hash,
+    /// Final progress counts.
     pub count: LoreRepositoryCloneCountData,
 }
 

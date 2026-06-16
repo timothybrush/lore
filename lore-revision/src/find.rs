@@ -402,10 +402,12 @@ pub async fn cache_revision_list_states(
     }
 }
 
+/// Data for the event reporting a revision found by a search.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionFindEventData {
+    /// Signature of the revision that was found.
     pub signature: Hash,
 }
 

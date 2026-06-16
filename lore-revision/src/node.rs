@@ -40,6 +40,7 @@ use crate::repository::RepositoryContext;
 use crate::state::State;
 use crate::state::StateError;
 
+/// Identifier of a node within a revision tree.
 pub type NodeID = u32;
 
 pub const ROOT_NODE: NodeID = 0;

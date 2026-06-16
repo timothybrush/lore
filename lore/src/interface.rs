@@ -6,6 +6,7 @@ use std::sync::LazyLock;
 
 pub type LoreEvent = lore_revision::interface::LoreEvent;
 
+/// Return the tag identifying the type of an event.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_event_type(event: &LoreEvent) -> u32 {
     event.discriminant()
@@ -6759,12 +6760,20 @@ pub extern "C" fn lore_notification_unsubscribe_async(
     run_asynchronously(globals, args, callback, crate::notification::unsubscribe);
 }
 
+/// Apply the given logging configuration.
+///
+/// Returns 0 when the configuration was applied and a non-zero value when it
+/// was not.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_log_configure(config: &LoreLogConfig) -> i32 {
     log::configure(config);
     0
 }
 
+/// Shut the library down, stopping its worker threads and releasing the
+/// resources it holds. Call this once, when no further calls will be made.
+///
+/// Returns 0 on success and a non-zero value on failure.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_shutdown() -> i32 {
     crate::shutdown();
@@ -6799,6 +6808,13 @@ pub type LoreReallocFn = unsafe extern "C" fn(
 ) -> *mut std::ffi::c_void;
 pub type LoreDeallocFn = unsafe extern "C" fn(ptr: *mut std::ffi::c_void);
 
+/// Install the memory allocator the library uses for its own allocations.
+/// Provide functions for allocation, zeroed allocation, reallocation and
+/// freeing. Call this before the library makes its first allocation; once it
+/// has allocated, the allocator can no longer be changed.
+///
+/// Returns 0 when the allocator was installed and a non-zero value when it was
+/// too late to install one, in which case the call does nothing.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_set_allocator(
     alloc: LoreAllocFn,
@@ -6818,6 +6834,8 @@ pub extern "C" fn lore_set_allocator(
     }
 }
 
+/// Return the library version as a NUL-terminated string. The string is owned
+/// by the library and must not be freed by the caller.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_version() -> *const std::ffi::c_char {
     lore_base::version::LORE_LIBRARY_VERSION_CSTR
@@ -6829,6 +6847,9 @@ pub fn user_directory() -> Option<PathBuf> {
     lore_base::directories::project_directory().map(|path| path.config_local_dir().to_path_buf())
 }
 
+/// Return the path of the directory where the library keeps its per-user data
+/// as a NUL-terminated string. The string is owned by the library and must not
+/// be freed by the caller.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_user_directory() -> *const std::ffi::c_char {
     static CAPI_USER_DIRECTORY: LazyLock<CString> = LazyLock::new(|| {
@@ -6842,6 +6863,8 @@ pub extern "C" fn lore_user_directory() -> *const std::ffi::c_char {
 
 pub type LoreRepositoryMetadataGetArgs = crate::repository::LoreRepositoryMetadataGetArgs;
 
+/// Retrieve repository metadata. Reads a single key, or all entries when no
+/// key is given.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_metadata_get(
     globals: &LoreGlobalArgs,
@@ -6851,6 +6874,7 @@ pub extern "C" fn lore_repository_metadata_get(
     run_synchronously(globals, args, callback, crate::repository::metadata_get)
 }
 
+/// Asynchronous version of `lore_repository_metadata_get`.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_metadata_get_async(
     globals: &LoreGlobalArgs,
@@ -6862,6 +6886,7 @@ pub extern "C" fn lore_repository_metadata_get_async(
 
 pub type LoreRepositoryMetadataSetArgs = crate::repository::LoreRepositoryMetadataSetArgs;
 
+/// Set repository metadata key-value pairs.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_metadata_set(
     globals: &LoreGlobalArgs,
@@ -6871,6 +6896,7 @@ pub extern "C" fn lore_repository_metadata_set(
     run_synchronously(globals, args, callback, crate::repository::metadata_set)
 }
 
+/// Asynchronous version of `lore_repository_metadata_set`.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_metadata_set_async(
     globals: &LoreGlobalArgs,
@@ -6882,6 +6908,8 @@ pub extern "C" fn lore_repository_metadata_set_async(
 
 pub type LoreRepositoryMetadataClearArgs = crate::repository::LoreRepositoryMetadataClearArgs;
 
+/// Clear repository metadata keys. Clears all user-defined keys when none are
+/// given.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_metadata_clear(
     globals: &LoreGlobalArgs,
@@ -6891,6 +6919,7 @@ pub extern "C" fn lore_repository_metadata_clear(
     run_synchronously(globals, args, callback, crate::repository::metadata_clear)
 }
 
+/// Asynchronous version of `lore_repository_metadata_clear`.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_metadata_clear_async(
     globals: &LoreGlobalArgs,
@@ -6902,6 +6931,7 @@ pub extern "C" fn lore_repository_metadata_clear_async(
 
 pub type LoreRepositoryInstanceListArgs = crate::repository::LoreRepositoryInstanceListArgs;
 
+/// List the tracked instances of the repository.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_instance_list(
     globals: &LoreGlobalArgs,
@@ -6911,6 +6941,7 @@ pub extern "C" fn lore_repository_instance_list(
     run_synchronously(globals, args, callback, crate::repository::instance_list)
 }
 
+/// Asynchronous version of `lore_repository_instance_list`.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_instance_list_async(
     globals: &LoreGlobalArgs,
@@ -6922,6 +6953,7 @@ pub extern "C" fn lore_repository_instance_list_async(
 
 pub type LoreRepositoryInstancePruneArgs = crate::repository::LoreRepositoryInstancePruneArgs;
 
+/// Remove stale instances of the repository that are no longer present.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_instance_prune(
     globals: &LoreGlobalArgs,
@@ -6931,6 +6963,7 @@ pub extern "C" fn lore_repository_instance_prune(
     run_synchronously(globals, args, callback, crate::repository::instance_prune)
 }
 
+/// Asynchronous version of `lore_repository_instance_prune`.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_instance_prune_async(
     globals: &LoreGlobalArgs,
@@ -6942,6 +6975,8 @@ pub extern "C" fn lore_repository_instance_prune_async(
 
 pub type LoreRepositoryUpdatePathArgs = crate::repository::LoreRepositoryUpdatePathArgs;
 
+/// Update the recorded path of the current repository instance to its present
+/// location.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_update_path(
     globals: &LoreGlobalArgs,
@@ -6956,6 +6991,7 @@ pub extern "C" fn lore_repository_update_path(
     )
 }
 
+/// Asynchronous version of `lore_repository_update_path`.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_update_path_async(
     globals: &LoreGlobalArgs,
@@ -6972,6 +7008,7 @@ pub extern "C" fn lore_repository_update_path_async(
 
 pub type LoreRepositoryConfigGetArgs = crate::repository::LoreRepositoryConfigGetArgs;
 
+/// Read a configuration value of the current repository by key.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_config_get(
     globals: &LoreGlobalArgs,
@@ -6981,6 +7018,7 @@ pub extern "C" fn lore_repository_config_get(
     run_synchronously(globals, args, callback, crate::repository::config_get)
 }
 
+/// Asynchronous version of `lore_repository_config_get`.
 #[unsafe(no_mangle)]
 pub extern "C" fn lore_repository_config_get_async(
     globals: &LoreGlobalArgs,

@@ -35,17 +35,26 @@ use crate::state;
 use crate::state::State;
 use crate::util::path::RelativePath;
 
+/// Data for the event describing one entry in a file's history.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileHistoryEventData {
+    /// Path of the file.
     pub path: LoreString,
+    /// Identifier of the repository.
     pub repository: RepositoryId,
+    /// Revision this entry belongs to.
     pub revision: Hash,
+    /// Sequential number of the revision.
     pub revision_number: u64,
+    /// Parent revisions of this revision.
     pub parent: [Hash; 2],
+    /// Address of the file content at this revision.
     pub address: Address,
+    /// Size of the file in bytes at this revision.
     pub size: u64,
+    /// Action applied to the file at this revision.
     pub action: LoreFileAction,
 }
 

@@ -114,112 +114,151 @@ impl EventError for DependencyError {
 
 // --- Event data structs ---
 
+/// Event data reported at the start of adding file dependencies.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDependencyAddBeginEventData {
+    /// Number of source files being processed.
     pub path_count: u64,
+    /// Number of dependency edges being added.
     pub dependency_count: u64,
 }
 
+/// Event data reported for each dependency edge being added.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDependencyAddEntryEventData {
+    /// Path of the source file that gains the dependency.
     pub path: LoreString,
+    /// Path of the file being depended on.
     pub dependency: LoreString,
+    /// Tags applied to this dependency edge.
     pub tags: LoreArray<LoreString>,
 }
 
+/// Event data reported at the end of adding file dependencies.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDependencyAddEndEventData {
+    /// Number of dependency edges that were added.
     pub added_count: u64,
 }
 
+/// Event data reported at the start of removing file dependencies.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDependencyRemoveBeginEventData {
+    /// Number of source files being processed.
     pub path_count: u64,
+    /// Number of dependency edges being removed.
     pub dependency_count: u64,
 }
 
+/// Event data reported for each dependency edge being removed.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDependencyRemoveEntryEventData {
+    /// Path of the source file that loses the dependency.
     pub path: LoreString,
+    /// Path of the file that was depended on.
     pub dependency: LoreString,
+    /// Tags on the dependency edge being removed.
     pub tags: LoreArray<LoreString>,
 }
 
+/// Event data reported at the end of removing file dependencies.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDependencyRemoveEndEventData {
+    /// Number of dependency edges that were removed.
     pub removed_count: u64,
 }
 
+/// Event data reported at the start of listing file dependencies.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDependencyListBeginEventData {
+    /// Number of files being listed.
     pub file_count: u64,
 }
 
+/// Event data reported at the start of listing a single file's dependencies.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDependencyListFileEventData {
+    /// Path of the file whose dependencies are being listed.
     pub path: LoreString,
+    /// Number of dependency entries for this file.
     pub entry_count: u64,
 }
 
+/// Event data reported for each dependency entry in a listing.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDependencyListEntryEventData {
+    /// Path of the dependency.
     pub path: LoreString,
+    /// Tags on this dependency edge.
     pub tags: LoreArray<LoreString>,
+    /// Traversal depth, zero for a direct dependency.
     pub depth: u32,
 }
 
+/// Event data reported at the end of listing a single file's dependencies.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDependencyListFileEndEventData {
+    /// Path of the file whose dependencies were listed.
     pub path: LoreString,
 }
 
+/// Event data reported at the end of listing file dependencies.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDependencyListEndEventData {
+    /// Total number of dependency entries that were listed.
     pub total_entry_count: u64,
 }
 
+/// Event data reported at the start of dependency resolution.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreDependencyResolveBeginEventData {
+    /// Number of root files resolution starts from.
     pub root_count: u64,
 }
 
+/// Event data reported for each resolved dependency edge.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreDependencyResolveItemEventData {
+    /// Path of the file the dependency comes from.
     pub source: LoreString,
+    /// Path of the file the dependency points to.
     pub target: LoreString,
+    /// Tags on this dependency edge.
     pub tags: LoreArray<LoreString>,
 }
 
+/// Event data reported at the end of dependency resolution.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreDependencyResolveEndEventData {
+    /// Number of dependency edges that were resolved.
     pub resolved_count: u64,
 }
 

@@ -96,17 +96,21 @@ impl EventError for AcquireError {
     }
 }
 
+/// Data for an event reporting a path whose lock was acquired.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLockFileAcquireEventData {
+    /// Path whose lock was acquired.
     pub path: LoreString,
 }
 
+/// Data for an event reporting a path that was skipped because its lock was already held.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLockFileAcquireIgnoreEventData {
+    /// Path that was skipped.
     pub path: LoreString,
 }
 

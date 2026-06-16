@@ -22,17 +22,26 @@ use crate::protocol;
 use crate::repository;
 use crate::runtime::execution_context;
 
+/// Descriptive data for a repository.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryDataEventData {
+    /// Remote URL of the repository.
     pub remote_url: LoreString,
+    /// Repository identifier.
     pub id: RepositoryId,
+    /// Repository name.
     pub name: LoreString,
+    /// Repository description.
     pub description: LoreString,
+    /// Identifier of the default branch.
     pub default_branch: BranchId,
+    /// Name of the default branch.
     pub default_branch_name: LoreString,
+    /// Name of the user who created the repository.
     pub creator: LoreString,
+    /// Creation time of the repository, in seconds since the Unix epoch.
     pub created: u64,
 }
 

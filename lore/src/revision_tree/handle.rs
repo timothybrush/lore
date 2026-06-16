@@ -46,8 +46,8 @@ use crate::storage::store::StoreInternal;
 
 /// Opaque handle to an open memory-based revision tree instance.
 ///
-/// Look up the corresponding [`RevisionTreeInternal`] via [`lookup`] before
-/// dispatch; never cast directly to or from raw pointers.
+/// Treat this as an opaque value; never cast it directly to or from raw
+/// pointers.
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct LoreRevisionTree {

@@ -47,51 +47,69 @@ use crate::state::State;
 use crate::util;
 use crate::util::path::RelativePath;
 
+/// Data for the event emitted when an unstage operation begins.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileUnstageBeginEventData {
+    /// Number of paths requested for unstaging.
     pub path_count: usize,
 }
 
+/// Running counts of items processed during an unstage operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileUnstageCountData {
+    /// Number of directories that were unstaged.
     pub directory_unstaged_count: u64,
+    /// Number of directories that were discarded.
     pub directory_discarded_count: u64,
+    /// Number of files that were unstaged.
     pub file_unstaged_count: u64,
+    /// Number of files that were discarded.
     pub file_discarded_count: u64,
+    /// Total number of items processed.
     pub total_count: u64,
 }
 
+/// Data for the progress event emitted periodically during an unstage operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileUnstageProgressEventData {
+    /// Current counts of items processed.
     pub count: LoreFileUnstageCountData,
 }
 
+/// Data for the event emitted when an unstage operation completes.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileUnstageEndEventData {
+    /// Final counts of items processed.
     pub count: LoreFileUnstageCountData,
 }
 
+/// Data for the event identifying the repository and revision involved in an unstage operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileUnstageRevisionEventData {
+    /// Identifier of the repository.
     pub repository: RepositoryId,
+    /// Revision the files are unstaged against.
     pub revision: Hash,
 }
 
+/// Data for the event emitted for each file affected by an unstage operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileUnstageFileEventData {
+    /// Path of the file.
     pub path: LoreString,
+    /// Action applied to the file.
     pub action: LoreFileAction,
 }
 

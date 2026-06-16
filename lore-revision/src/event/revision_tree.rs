@@ -26,6 +26,7 @@ use crate::node::NodeID;
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeLoadedEventData {
+    /// Registry id for the loaded revision tree.
     pub handle_id: u64,
 }
 
@@ -36,8 +37,11 @@ pub struct LoreRevisionTreeLoadedEventData {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeResolvePathCompleteEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The resolved node.
     pub node_id: NodeID,
+    /// The outcome of the call.
     pub error_code: LoreErrorCode,
 }
 
@@ -48,14 +52,23 @@ pub struct LoreRevisionTreeResolvePathCompleteEventData {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeChildEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The child node.
     pub node_id: NodeID,
+    /// The name of the child node.
     pub name: LoreString,
+    /// The parent node.
     pub parent_id: NodeID,
+    /// The kind of node.
     pub kind: u32,
+    /// The file mode bits.
     pub mode: u16,
+    /// The size of the node's content in bytes.
     pub size: u64,
+    /// The address of the node's content.
     pub address: Address,
+    /// The outcome of the call.
     pub error_code: LoreErrorCode,
 }
 
@@ -72,10 +85,15 @@ pub struct LoreRevisionTreeChildEventData {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeRootInfoData {
+    /// 1 when the inline fields carry root data; 0 otherwise.
     pub is_root: u8,
+    /// The parent revision signatures.
     pub parent: [Hash; 2],
+    /// The time the revision was created.
     pub creation_timestamp: i64,
+    /// The identity of the revision's author.
     pub author_identity: LoreString,
+    /// The number of metadata keys on the revision.
     pub metadata_key_count: u32,
 }
 
@@ -87,15 +105,25 @@ pub struct LoreRevisionTreeRootInfoData {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeNodeInfoEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The queried node.
     pub node_id: NodeID,
+    /// The name of the node.
     pub name: LoreString,
+    /// The parent node.
     pub parent_id: NodeID,
+    /// The kind of node.
     pub kind: u32,
+    /// The file mode bits.
     pub mode: u16,
+    /// The size of the node's content in bytes.
     pub size: u64,
+    /// The address of the node's content.
     pub address: Address,
+    /// The preserved file id of the node.
     pub file_id: Context,
+    /// Root metadata, valid only when the node is the revision root.
     pub root_info: LoreRevisionTreeRootInfoData,
 }
 
@@ -106,8 +134,11 @@ pub struct LoreRevisionTreeNodeInfoEventData {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeNodePathEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The reconstructed path from the root to the queried node.
     pub path: LoreString,
+    /// The outcome of the call.
     pub error_code: LoreErrorCode,
 }
 
@@ -117,8 +148,11 @@ pub struct LoreRevisionTreeNodePathEventData {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeAddCompleteEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The newly-added node.
     pub node_id: NodeID,
+    /// The outcome of the call.
     pub error_code: LoreErrorCode,
 }
 
@@ -127,7 +161,9 @@ pub struct LoreRevisionTreeAddCompleteEventData {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeDeleteCompleteEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The outcome of the call.
     pub error_code: LoreErrorCode,
 }
 
@@ -137,8 +173,11 @@ pub struct LoreRevisionTreeDeleteCompleteEventData {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeModifyCompleteEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The modified node.
     pub node_id: NodeID,
+    /// The outcome of the call.
     pub error_code: LoreErrorCode,
 }
 
@@ -148,8 +187,11 @@ pub struct LoreRevisionTreeModifyCompleteEventData {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeMoveCompleteEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The moved node.
     pub node_id: NodeID,
+    /// The outcome of the call.
     pub error_code: LoreErrorCode,
 }
 
@@ -158,7 +200,9 @@ pub struct LoreRevisionTreeMoveCompleteEventData {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeMetadataSetCompleteEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The outcome of the call.
     pub error_code: LoreErrorCode,
 }
 
@@ -172,9 +216,13 @@ pub struct LoreRevisionTreeMetadataSetCompleteEventData {
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeMetadataGetCompleteEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The metadata key.
     pub key: LoreString,
+    /// The metadata value.
     pub value: LoreMetadata,
+    /// The outcome of the call.
     pub error_code: LoreErrorCode,
 }
 
@@ -187,9 +235,13 @@ pub struct LoreRevisionTreeMetadataGetCompleteEventData {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeCommitCompleteEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The newly-committed revision.
     pub revision_hash: Hash,
+    /// The observed branch tip when the branch had advanced.
     pub new_tip_hash: Hash,
+    /// The outcome of the call.
     pub error_code: LoreErrorCode,
 }
 
@@ -198,6 +250,8 @@ pub struct LoreRevisionTreeCommitCompleteEventData {
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionTreeCloseCompleteEventData {
+    /// Correlation id of the originating call.
     pub id: u64,
+    /// The outcome of the call.
     pub error_code: LoreErrorCode,
 }

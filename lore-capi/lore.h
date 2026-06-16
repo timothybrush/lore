@@ -1,4 +1,43 @@
-
+// LORE C API
+//
+// Usage
+//
+//   1. Optional. Install a custom allocator with lore_set_allocator and set a
+//      thread limit with lore_set_thread_limit. Call each early, before the
+//      library does the work it governs; see those functions for the exact
+//      point.
+//
+//   2. Optional. Configure logging with lore_log_configure. You can call this
+//      at any time.
+//
+//   3. Run operations. Each operation takes a lore_global_args_t value, an
+//      operation-specific arguments value, and a lore_event_callback_config_t.
+//      The library reports progress and results as events to the callback.
+//
+//   4. Call lore_shutdown when you are done with the library.
+//
+// Return values
+//
+// An operation function returns 0 on success and a non-zero value on error.
+// For a function that takes a callback, the error event passed to the callback
+// gives more information.
+//
+// Strings
+//
+// A string the library produces is a NUL-terminated buffer. A string carried
+// inside an event is valid only while the callback runs; copy its bytes to keep
+// them after the callback returns. A string the caller passes in must be valid
+// UTF-8, which the library does not check. The library copies the bytes, so the
+// caller may free the string once the call returns. See lore_string_t for the
+// layout of the type.
+//
+// Argument lifetime
+//
+// The library copies argument data before it starts the call. The caller may
+// free or reuse the argument memory once the call returns. This holds for
+// synchronous and asynchronous calls.
+//
+// See lore_event_callback_config_t for how callbacks work.
 
 #pragma once
 
@@ -11,76 +50,125 @@
 
 #define LORE_INTERFACE_VERSION "0.8.3-nightly"
 
+// Severity level of a log message.
 typedef enum lore_log_level_t {
+  // No logging.
   LORE_LOG_LEVEL_NONE = 0,
+  // Most detailed tracing messages.
   LORE_LOG_LEVEL_TRACE = 1,
+  // Debugging messages.
   LORE_LOG_LEVEL_DEBUG = 2,
+  // Informational messages.
   LORE_LOG_LEVEL_INFO = 3,
+  // Warnings about unexpected but recoverable situations.
   LORE_LOG_LEVEL_WARN = 4,
+  // Errors.
   LORE_LOG_LEVEL_ERROR = 5,
 } lore_log_level_t;
 
+// Where a branch is located.
 typedef enum lore_branch_location_t {
+  // A branch held locally.
   LORE_BRANCH_LOCATION_LOCAL = 0,
+  // A branch held on the server.
   LORE_BRANCH_LOCATION_REMOTE = 1,
 } lore_branch_location_t;
 
+// The change applied to a file.
 typedef enum lore_file_action_t {
+  // The file is unchanged.
   LORE_FILE_ACTION_KEEP = 0,
+  // The file was added.
   LORE_FILE_ACTION_ADD = 1,
+  // The file was deleted.
   LORE_FILE_ACTION_DELETE = 2,
+  // The file was moved to a new path.
   LORE_FILE_ACTION_MOVE = 3,
+  // The file was copied from another path.
   LORE_FILE_ACTION_COPY = 4,
 } lore_file_action_t;
 
+// The kind of a tracked node.
 typedef enum lore_node_type_t {
+  // A directory.
   LORE_NODE_TYPE_DIRECTORY = 0,
+  // A file.
   LORE_NODE_TYPE_FILE = 1,
+  // A symbolic link.
   LORE_NODE_TYPE_LINK = 2,
 } lore_node_type_t;
 
 // Small discriminator enum for per-item terminal events in the
 // content-addressed storage API.
 //
-// Narrower than [`crate::interface::LoreError`] — events emitted per
+// Narrower than the general library error code — events emitted per
 // put/get/copy/etc. item embed this code so a caller can branch on the
 // common cases cheaply without parsing the companion `LORE_EVENT_ERROR`
-// detail. Variants overlap with [`crate::interface::LoreError`] where they
+// detail. Variants overlap with the general library error code where they
 // share a meaning.
 //
 typedef enum lore_error_code_t {
+  // No error; the operation succeeded.
   LORE_ERROR_CODE_NONE = 0,
+  // The arguments supplied to the operation were invalid.
   LORE_ERROR_CODE_INVALID_ARGUMENTS = 1,
+  // A content-addressable object could not be found in any store.
   LORE_ERROR_CODE_ADDRESS_NOT_FOUND = 2,
+  // An internal error occurred.
   LORE_ERROR_CODE_INTERNAL = 3,
+  // The backing store is overloaded; the caller should retry later.
   LORE_ERROR_CODE_SLOW_DOWN = 4,
 } lore_error_code_t;
 
+// The kind of value held by a metadata entry.
 typedef enum lore_metadata_type_t {
+  // A block of raw bytes.
   LORE_METADATA_TYPE_BINARY = 0,
+  // An unsigned integer value.
   LORE_METADATA_TYPE_NUMERIC = 1,
+  // A string value.
   LORE_METADATA_TYPE_STRING = 2,
 } lore_metadata_type_t;
 
+// Data for a generic progress event.
 typedef struct lore_progress_event_data_t {
+  // Placeholder field; carries no meaningful value.
   uint32_t _unused;
 } lore_progress_event_data_t;
 
+// A string described by a pointer to its character data and a length, holding
+// text as a sequence of bytes.
+//
+// The text is UTF-8. The length field counts the bytes before the trailing
+// NUL. An empty string is a NULL pointer with length 0, and a length of 0
+// means the string is empty.
 typedef struct lore_string_t {
+  // Pointer to the start of the character data.
   const char *string;
+  // Number of bytes in the string, not counting any trailing terminator.
   uintptr_t length;
 } lore_string_t;
 
+// Data for an error event.
 typedef struct lore_error_event_data_t {
+  // The error code, matching one of the FFI error codes.
   uint32_t error_type;
+  // The underlying error message.
   struct lore_string_t error_inner;
 } lore_error_event_data_t;
 
+// Data for a completion event, marking the end of an operation.
 typedef struct lore_complete_event_data_t {
+  // The completion status code of the operation.
   int32_t status;
 } lore_complete_event_data_t;
 
+// Opaque 256-bit content hash.
+//
+// Identifies a piece of content by the digest of its bytes. Two pieces of
+// identical content share the same hash.
 typedef struct lore_hash_t {
+  // The raw 32 bytes of the hash digest.
   uint8_t data[32];
 } lore_hash_t;
 
@@ -90,26 +178,44 @@ typedef struct lore_hash_t {
 // association tag within an `Address` (e.g., file identity for dedup reasoning),
 // distinct from the `Partition` which identifies the data partition.
 typedef struct lore_context_t {
+  // The raw 16 bytes of the identifier.
   uint8_t data[16];
 } lore_context_t;
 
+// Full address of a piece of content.
+//
+// Pairs a content hash with a context identifier, so the same content can be
+// addressed under different contexts.
 typedef struct lore_address_t {
+  // Content hash.
   struct lore_hash_t hash;
+  // Context identifier paired with the hash.
   struct lore_context_t context;
 } lore_address_t;
 
+// A block of raw bytes described by a pointer and a length.
 typedef struct lore_binary_t {
+  // Pointer to the start of the byte block.
   const void *payload;
+  // Number of bytes in the block.
   uintptr_t length;
 } lore_binary_t;
 
+// A metadata value, tagged by the kind of value it holds.
 typedef enum lore_metadata_tag_t {
+  // An address value.
   LORE_METADATA_ADDRESS,
+  // A boolean value, stored as a byte.
   LORE_METADATA_BOOLEAN,
+  // A block of raw bytes.
   LORE_METADATA_BINARY,
+  // A context value.
   LORE_METADATA_CONTEXT,
+  // A hash value.
   LORE_METADATA_HASH,
+  // An unsigned integer value.
   LORE_METADATA_NUMERIC,
+  // A string value.
   LORE_METADATA_STRING,
 } lore_metadata_tag_t;
 
@@ -126,46 +232,71 @@ typedef struct lore_metadata_t {
   };
 } lore_metadata_t;
 
+// Data for a metadata event, carrying a single key and value.
 typedef struct lore_metadata_event_data_t {
+  // The metadata key.
   struct lore_string_t key;
+  // The metadata value.
   struct lore_metadata_t value;
 } lore_metadata_event_data_t;
 
+// Data for a log event.
 typedef struct lore_log_event_data_t {
+  // The severity level of the log message.
   enum lore_log_level_t level;
+  // The category of the log message.
   uint32_t category;
+  // The time the message was produced.
   uint64_t timestamp;
+  // The source location that produced the message.
   struct lore_string_t location;
+  // The log message text.
   struct lore_string_t message;
 } lore_log_event_data_t;
 
+// Data for an end event, marking the final event of a callback stream.
 typedef struct lore_end_event_data_t {
+  // Placeholder field; carries no meaningful value.
   uint32_t unused;
 } lore_end_event_data_t;
 
+// Data for a maintenance event, carrying an informational message.
 typedef struct lore_maintenance_event_data_t {
+  // The maintenance message text.
   struct lore_string_t message;
 } lore_maintenance_event_data_t;
 
+// Event data carrying an authentication URL for the user to open.
 typedef struct lore_auth_url_event_data_t {
   // Authentication URL
   struct lore_string_t url;
 } lore_auth_url_event_data_t;
 
+// Event data resolving a user identity to a display name.
 typedef struct lore_auth_user_info_event_data_t {
+  // User identity
   struct lore_string_t id;
+  // Display name for the user
   struct lore_string_t name;
 } lore_auth_user_info_event_data_t;
 
+// Event data carrying a user token along with the identity it belongs to.
 typedef struct lore_auth_user_token_event_data_t {
+  // User identity
   struct lore_string_t id;
+  // Display name for the user
   struct lore_string_t name;
+  // The token string
   struct lore_string_t token;
+  // Preferred username from the token
   struct lore_string_t preferred_username;
+  // Non-zero if the identity is a service account
   uint8_t flag_service_account;
+  // Expiry time in milliseconds since UNIX epoch, or 0 if unavailable
   uint64_t expires;
 } lore_auth_user_token_event_data_t;
 
+// Event data describing a stored authentication identity.
 typedef struct lore_auth_identity_event_data_t {
   // Auth service URL
   struct lore_string_t auth_url;
@@ -181,9 +312,13 @@ typedef struct lore_auth_identity_event_data_t {
   struct lore_string_t token;
 } lore_auth_identity_event_data_t;
 
+// Event data reported when a branch is created.
 typedef struct lore_branch_create_event_data_t {
+  // Name of the created branch.
   struct lore_string_t name;
+  // Latest revision the new branch points at.
   struct lore_hash_t latest;
+  // Set when creating the branch also produced a new commit.
   uint8_t is_commit;
 } lore_branch_create_event_data_t;
 
@@ -197,129 +332,210 @@ typedef struct lore_context_t lore_branch_id_t;
 // per-instance anchor keys in the mutable store, distinguishing one
 // instance's checkout state from another when sharing a shared store.
 typedef struct lore_instance_id_t {
+  // The raw 16-byte identifier
   uint8_t data[16];
 } lore_instance_id_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_instance_id_array_t {
+  // Pointer to the first element.
   const struct lore_instance_id_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_instance_id_array_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_string_array_t {
+  // Pointer to the first element.
   const struct lore_string_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_string_array_t;
 
+// Event data warning that several instances share the same checked-out branch.
 typedef struct lore_branch_multiple_instance_event_data_t {
+  // The branch checked out by more than one instance
   lore_branch_id_t branch;
+  // Identifiers of the other instances on the branch
   struct lore_instance_id_array_t instance_ids;
+  // Filesystem paths of the other instances on the branch
   struct lore_string_array_t instance_paths;
 } lore_branch_multiple_instance_event_data_t;
 
+// Event data reported when a branch is archived.
 typedef struct lore_branch_archive_event_data_t {
+  // Name of the archived branch.
   struct lore_string_t name;
 } lore_branch_archive_event_data_t;
 
+// Event data reported at the start of a branch listing.
 typedef struct lore_branch_list_begin_event_data_t {
+  // Location the listed branches come from.
   enum lore_branch_location_t location;
 } lore_branch_list_begin_event_data_t;
 
+// A branch paired with a revision on that branch.
 typedef struct lore_branch_point_t {
+  // The branch.
   lore_branch_id_t branch;
+  // The revision on the branch.
   struct lore_hash_t revision;
 } lore_branch_point_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_branch_point_array_t {
+  // Pointer to the first element.
   const struct lore_branch_point_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_branch_point_array_t;
 
+// Event data reported for each branch in a branch listing.
 typedef struct lore_branch_list_entry_event_data_t {
+  // Location this branch comes from.
   enum lore_branch_location_t location;
+  // Branch identifier.
   lore_branch_id_t id;
+  // Branch name.
   struct lore_string_t name;
+  // Branch category.
   struct lore_string_t category;
+  // Latest revision the branch points at.
   struct lore_hash_t latest;
+  // Stack of branch points this branch was created from.
   struct lore_branch_point_array_t stack;
+  // Identifier of the user who created the branch.
   struct lore_string_t creator;
+  // Creation time of the branch as a timestamp.
   uint64_t created;
+  // Set when this branch is the current branch.
   uint8_t is_current;
+  // Set when this branch has been archived.
   uint8_t archived;
 } lore_branch_list_entry_event_data_t;
 
+// Event data reported at the end of a branch listing.
 typedef struct lore_branch_list_end_event_data_t {
+  // Location the listed branches came from.
   enum lore_branch_location_t location;
+  // Number of branches that were listed.
   uint64_t count;
 } lore_branch_list_end_event_data_t;
 
+// Data for the event sent when a branch merge abort starts.
 typedef struct lore_branch_merge_abort_begin_event_data_t {
+  // The staged revision being discarded.
   struct lore_hash_t state_staged_revision;
+  // The current revision the working state returns to.
   struct lore_hash_t state_current_revision;
 } lore_branch_merge_abort_begin_event_data_t;
 
+// Data for the event sent when a branch merge abort finishes.
 typedef struct lore_branch_merge_abort_end_event_data_t {
+  // Placeholder field. The event carries no payload.
   uint32_t _unused;
 } lore_branch_merge_abort_end_event_data_t;
 
+// Event data reported with information about a single branch.
 typedef struct lore_branch_info_event_data_t {
+  // Branch identifier.
   lore_branch_id_t id;
+  // Branch name.
   struct lore_string_t name;
+  // Branch category.
   struct lore_string_t category;
+  // Latest revision known locally for the branch.
   struct lore_hash_t latest;
+  // Latest revision known on the remote for the branch.
   struct lore_hash_t latest_remote;
+  // Identifier of the parent branch.
   lore_branch_id_t parent;
+  // Revision on the parent branch where this branch was created.
   struct lore_hash_t branch_point;
+  // Identifier of the user who created the branch.
   struct lore_string_t creator;
+  // Creation time of the branch as a timestamp.
   uint64_t created;
+  // Stack of branch points this branch was created from.
   struct lore_branch_point_array_t stack;
+  // Set when the branch has been archived.
   uint8_t archived;
 } lore_branch_info_event_data_t;
 
+// Event data reported at the start of a branch diff.
 typedef struct lore_branch_diff_begin_event_data_t {
+  // Unused placeholder field.
   uint32_t _unused;
 } lore_branch_diff_begin_event_data_t;
 
+// Event data reported at the start of the change section of a branch diff.
 typedef struct lore_branch_diff_change_begin_event_data_t {
+  // Number of changes that follow.
   uintptr_t changes_count;
 } lore_branch_diff_change_begin_event_data_t;
 
+// Event data describing a single changed node in a branch diff.
 typedef struct lore_branch_diff_node_data_t {
+  // File action applied to the node.
   enum lore_file_action_t action;
+  // Path of the node.
   struct lore_string_t path;
+  // Set when the change was merged automatically.
   uint8_t automerged;
 } lore_branch_diff_node_data_t;
 
+// Event data reporting a single change in a branch diff.
 typedef struct lore_branch_diff_change_event_data_t {
+  // The changed node.
   struct lore_branch_diff_node_data_t change;
 } lore_branch_diff_change_event_data_t;
 
+// Event data reported at the end of the change section of a branch diff.
 typedef struct lore_branch_diff_change_end_event_data_t {
+  // Unused placeholder field.
   uint32_t _unused;
 } lore_branch_diff_change_end_event_data_t;
 
+// Event data reported at the start of the conflict section of a branch diff.
 typedef struct lore_branch_diff_conflict_begin_event_data_t {
+  // Number of conflicts that follow.
   uintptr_t conflicts_count;
 } lore_branch_diff_conflict_begin_event_data_t;
 
+// Event data reporting a single conflict in a branch diff.
 typedef struct lore_branch_diff_conflict_event_data_t {
+  // The change on the source side of the conflict.
   struct lore_branch_diff_node_data_t source_change;
+  // The change on the target side of the conflict.
   struct lore_branch_diff_node_data_t target_change;
 } lore_branch_diff_conflict_event_data_t;
 
+// Event data reported at the end of the conflict section of a branch diff.
 typedef struct lore_branch_diff_conflict_end_event_data_t {
+  // Unused placeholder field.
   uint32_t _unused;
 } lore_branch_diff_conflict_end_event_data_t;
 
+// Event data reported at the end of a branch diff.
 typedef struct lore_branch_diff_end_event_data_t {
+  // Unused placeholder field.
   uint32_t _unused;
 } lore_branch_diff_end_event_data_t;
 
+// Event data reported for each entry in a branch latest-revision history listing.
 typedef struct lore_branch_latest_list_entry_event_data_t {
+  // Branch identifier.
   lore_branch_id_t branch;
+  // Revision recorded in the history entry.
   struct lore_hash_t revision;
 } lore_branch_latest_list_entry_event_data_t;
 
+// Data for the event sent for each file the merge left in conflict.
 typedef struct lore_branch_merge_conflict_file_event_data_t {
+  // The path of the conflicted file.
   struct lore_string_t path;
 } lore_branch_merge_conflict_file_event_data_t;
 
@@ -329,495 +545,807 @@ typedef struct lore_branch_merge_conflict_file_event_data_t {
 // a repository identifier; the storage layer uses it to segregate data without
 // understanding what the partition represents.
 typedef struct lore_partition_t {
+  // The raw 16 bytes of the identifier.
   uint8_t data[16];
 } lore_partition_t;
 
 // Alias: a repository is identified by a `Partition`.
 typedef struct lore_partition_t lore_repository_id_t;
 
+// Data for the event sent when a link is skipped during a merge.
 typedef struct lore_branch_merge_link_skipped_event_data_t {
+  // The mount path of the skipped link.
   struct lore_string_t link_path;
+  // The repository of the skipped link.
   lore_repository_id_t repository;
+  // The reason the link was skipped.
   uint8_t reason;
 } lore_branch_merge_link_skipped_event_data_t;
 
+// Data for the event sent when a file in a merge is marked unresolved.
 typedef struct lore_branch_merge_unresolve_file_event_data_t {
+  // The path of the file marked unresolved.
   struct lore_string_t path;
 } lore_branch_merge_unresolve_file_event_data_t;
 
+// Data for the event sent when a revision in a merge is marked unresolved.
 typedef struct lore_branch_merge_unresolve_revision_event_data_t {
+  // The repository of the revision marked unresolved.
   lore_repository_id_t repository;
+  // The revision marked unresolved.
   struct lore_hash_t revision;
 } lore_branch_merge_unresolve_revision_event_data_t;
 
+// Data for the event sent before files are merged into the working tree.
 typedef struct lore_branch_merge_into_file_begin_event_data_t {
+  // The number of files to merge.
   uintptr_t count;
 } lore_branch_merge_into_file_begin_event_data_t;
 
+// Data for the event sent for each file merged into the working tree.
 typedef struct lore_branch_merge_into_file_event_data_t {
+  // The path of the file.
   struct lore_string_t path;
+  // The action applied to the file.
   enum lore_file_action_t action;
+  // The size of the file in bytes.
   uint64_t size;
+  // Set when the entry is a regular file.
   uint8_t is_file;
+  // Set when the entry is a directory.
   uint8_t is_directory;
+  // Set when the entry is a link.
   uint8_t is_link;
 } lore_branch_merge_into_file_event_data_t;
 
+// Data for the event sent after files are merged into the working tree.
 typedef struct lore_branch_merge_into_file_end_event_data_t {
+  // The number of files merged.
   uintptr_t count;
 } lore_branch_merge_into_file_end_event_data_t;
 
+// Data for the event sent before the merge transfers fragments.
 typedef struct lore_branch_merge_into_fragment_begin_event_data_t {
+  // The number of fragments to transfer.
   uint64_t fragments;
 } lore_branch_merge_into_fragment_begin_event_data_t;
 
+// Data for the event sent as the merge transfers fragments.
 typedef struct lore_branch_merge_into_fragment_progress_event_data_t {
+  // The number of fragments transferred so far.
   uint64_t complete;
+  // The total number of fragments to transfer.
   uint64_t count;
 } lore_branch_merge_into_fragment_progress_event_data_t;
 
+// Data for the event sent after the merge transfers fragments.
 typedef struct lore_branch_merge_into_fragment_end_event_data_t {
+  // The number of fragments transferred.
   uint64_t fragments;
 } lore_branch_merge_into_fragment_end_event_data_t;
 
+// Data for the event sent for each revision merged into the working tree.
 typedef struct lore_branch_merge_into_revision_event_data_t {
+  // The revision merged.
   struct lore_hash_t revision;
+  // The sequential number of the revision.
   uint64_t revision_number;
 } lore_branch_merge_into_revision_event_data_t;
 
+// Data for the event sent before the merge synchronizes revisions.
 typedef struct lore_branch_merge_into_sync_begin_event_data_t {
+  // The number of revisions to synchronize.
   uintptr_t count;
 } lore_branch_merge_into_sync_begin_event_data_t;
 
+// Data for the event sent after the merge synchronizes revisions.
 typedef struct lore_branch_merge_into_sync_end_event_data_t {
+  // The number of revisions synchronized.
   uintptr_t count;
 } lore_branch_merge_into_sync_end_event_data_t;
 
+// Data for the event sent when a file in a merge is marked resolved.
 typedef struct lore_branch_merge_resolve_file_event_data_t {
+  // The path of the file marked resolved.
   struct lore_string_t path;
 } lore_branch_merge_resolve_file_event_data_t;
 
+// Data for the event sent when a revision in a merge is marked resolved.
 typedef struct lore_branch_merge_resolve_revision_event_data_t {
+  // The repository of the revision marked resolved.
   lore_repository_id_t repository;
+  // The revision marked resolved.
   struct lore_hash_t revision;
 } lore_branch_merge_resolve_revision_event_data_t;
 
+// Data for the event sent when a branch merge starts.
 typedef struct lore_branch_merge_start_begin_event_data_t {
+  // The source branch being merged.
   lore_branch_id_t branch;
+  // The source revision being merged.
   struct lore_hash_t revision;
+  // The sequential number of the source revision.
   uint64_t revision_number;
 } lore_branch_merge_start_begin_event_data_t;
 
+// Progress counters reported while a sync updates the working files.
 typedef struct lore_revision_sync_progress_event_data_t {
+  // Number of files updated so far.
   uintptr_t file_update;
+  // Total number of files to update.
   uintptr_t file_update_total;
+  // Number of files deleted so far.
   uintptr_t file_delete;
+  // Total number of files to delete.
   uintptr_t file_delete_total;
+  // Number of files merged automatically so far.
   uintptr_t file_automerge;
+  // Number of files with conflicts so far.
   uintptr_t file_conflict;
+  // Number of bytes updated so far.
   uint64_t bytes_update;
+  // Total number of bytes to update.
   uint64_t bytes_update_total;
+  // Flag indicating discovery of the work to do has finished.
   uint8_t discovery_complete;
 } lore_revision_sync_progress_event_data_t;
 
+// Data for the event sent when a branch merge finishes.
 typedef struct lore_branch_merge_start_end_event_data_t {
+  // Progress totals collected while applying the merge.
   struct lore_revision_sync_progress_event_data_t stats;
+  // The revision produced by the merge.
   struct lore_hash_t signature;
+  // Set when the merge produced file conflicts.
   uint8_t has_conflicts;
 } lore_branch_merge_start_end_event_data_t;
 
+// Event data reported at the start of a cherry-pick.
 typedef struct lore_cherry_pick_start_begin_event_data_t {
+  // Branch identifier.
   lore_branch_id_t branch;
+  // Identifier of the revision being cherry-picked.
   struct lore_hash_t revision;
+  // Number of the revision being cherry-picked.
   uint64_t revision_number;
 } lore_cherry_pick_start_begin_event_data_t;
 
+// Event data reported at the end of a cherry-pick.
 typedef struct lore_cherry_pick_start_end_event_data_t {
+  // Progress statistics for the applied changes.
   struct lore_revision_sync_progress_event_data_t stats;
+  // Resulting revision hash signature.
   struct lore_hash_t signature;
+  // Flag indicating the cherry-pick produced conflicts.
   uint8_t has_conflicts;
 } lore_cherry_pick_start_end_event_data_t;
 
+// Event data reported at the start of aborting a cherry-pick.
 typedef struct lore_cherry_pick_abort_begin_event_data_t {
+  // Identifier of the staged revision being discarded.
   struct lore_hash_t state_staged_revision;
+  // Identifier of the current revision being restored.
   struct lore_hash_t state_current_revision;
 } lore_cherry_pick_abort_begin_event_data_t;
 
+// Event data reported at the end of aborting a cherry-pick.
 typedef struct lore_cherry_pick_abort_end_event_data_t {
+  // Unused placeholder field.
   uint32_t _unused;
 } lore_cherry_pick_abort_end_event_data_t;
 
+// Event data reported for a file in conflict during a cherry-pick.
 typedef struct lore_cherry_pick_conflict_file_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
 } lore_cherry_pick_conflict_file_event_data_t;
 
+// Event data reported when a file is unresolved during a cherry-pick.
 typedef struct lore_cherry_pick_unresolve_file_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
 } lore_cherry_pick_unresolve_file_event_data_t;
 
+// Event data reported when a revision is unresolved during a cherry-pick.
 typedef struct lore_cherry_pick_unresolve_revision_event_data_t {
+  // Repository identifier.
   lore_repository_id_t repository;
+  // Identifier of the revision.
   struct lore_hash_t revision;
 } lore_cherry_pick_unresolve_revision_event_data_t;
 
+// Event data reported when a file is resolved during a cherry-pick.
 typedef struct lore_cherry_pick_resolve_file_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
 } lore_cherry_pick_resolve_file_event_data_t;
 
+// Event data reported when a revision is resolved during a cherry-pick.
 typedef struct lore_cherry_pick_resolve_revision_event_data_t {
+  // Repository identifier.
   lore_repository_id_t repository;
+  // Identifier of the revision.
   struct lore_hash_t revision;
 } lore_cherry_pick_resolve_revision_event_data_t;
 
+// Event data reported at the start of a revert.
 typedef struct lore_revert_start_begin_event_data_t {
+  // Branch identifier.
   lore_branch_id_t branch;
+  // Identifier of the revision being reverted.
   struct lore_hash_t revision;
+  // Number of the revision being reverted.
   uint64_t revision_number;
 } lore_revert_start_begin_event_data_t;
 
+// Event data reported at the end of a revert.
 typedef struct lore_revert_start_end_event_data_t {
+  // Progress statistics for the applied changes.
   struct lore_revision_sync_progress_event_data_t stats;
+  // Resulting revision hash signature.
   struct lore_hash_t signature;
+  // Flag indicating the revert produced conflicts.
   uint8_t has_conflicts;
 } lore_revert_start_end_event_data_t;
 
+// Event data reported at the start of aborting a revert.
 typedef struct lore_revert_abort_begin_event_data_t {
+  // Identifier of the staged revision being discarded.
   struct lore_hash_t state_staged_revision;
+  // Identifier of the current revision being restored.
   struct lore_hash_t state_current_revision;
 } lore_revert_abort_begin_event_data_t;
 
+// Event data reported at the end of aborting a revert.
 typedef struct lore_revert_abort_end_event_data_t {
+  // Unused placeholder field.
   uint32_t _unused;
 } lore_revert_abort_end_event_data_t;
 
+// Event data reported when a file is resolved during a revert.
 typedef struct lore_revert_resolve_file_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
 } lore_revert_resolve_file_event_data_t;
 
+// Event data reported when a revision is resolved during a revert.
 typedef struct lore_revert_resolve_revision_event_data_t {
+  // Repository identifier.
   lore_repository_id_t repository;
+  // Identifier of the revision.
   struct lore_hash_t revision;
 } lore_revert_resolve_revision_event_data_t;
 
+// Event data reported for a file in conflict during a revert.
 typedef struct lore_revert_conflict_file_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
 } lore_revert_conflict_file_event_data_t;
 
+// Event data reported when a file is unresolved during a revert.
 typedef struct lore_revert_unresolve_file_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
 } lore_revert_unresolve_file_event_data_t;
 
+// Event data reported when a revision is unresolved during a revert.
 typedef struct lore_revert_unresolve_revision_event_data_t {
+  // Repository identifier.
   lore_repository_id_t repository;
+  // Identifier of the revision.
   struct lore_hash_t revision;
 } lore_revert_unresolve_revision_event_data_t;
 
+// Event data reported when a branch is protected.
 typedef struct lore_branch_protect_event_data_t {
+  // Name of the protected branch.
   struct lore_string_t name;
 } lore_branch_protect_event_data_t;
 
+// Data for the event sent when a branch push starts.
 typedef struct lore_branch_push_event_data_t {
+  // The remote being pushed to.
   struct lore_string_t remote;
+  // The repository being pushed.
   lore_repository_id_t repository;
+  // The branch being pushed.
   lore_branch_id_t branch;
+  // The name of the branch being pushed.
   struct lore_string_t branch_name;
+  // The latest revision of the branch on the remote.
   struct lore_hash_t remote_revision;
+  // The latest revision of the branch in the local repository.
   struct lore_hash_t local_revision;
+  // The number of revisions on the remote that are not present locally.
   uint64_t remote_history;
+  // The number of local revisions to push.
   uint64_t local_history;
+  // Set when the local revision is already present on the remote.
   uint8_t flag_already_pushed;
+  // Set when the branch is the repository's default branch.
   uint8_t flag_default;
+  // Set when the repository is a linked repository.
   uint8_t flag_link;
+  // Set when the repository is a layer.
   uint8_t flag_layer;
 } lore_branch_push_event_data_t;
 
+// Data for the event sent before a revision's parent is rewritten during push.
 typedef struct lore_branch_push_revision_update_begin_event_data_t {
+  // The revision being updated.
   struct lore_hash_t revision;
+  // The previous parent revision.
   struct lore_hash_t old_parent;
+  // The new parent revision.
   struct lore_hash_t new_parent;
 } lore_branch_push_revision_update_begin_event_data_t;
 
+// Data for the event sent after a revision's parent is rewritten during push.
 typedef struct lore_branch_push_revision_update_end_event_data_t {
+  // The updated revision.
   struct lore_hash_t revision;
 } lore_branch_push_revision_update_end_event_data_t;
 
+// Data for the event sent before fragments are transferred during push.
 typedef struct lore_branch_push_fragment_begin_event_data_t {
+  // The number of fragments to transfer.
   uint64_t fragments;
+  // The total number of bytes to transfer.
   uint64_t bytes_total;
 } lore_branch_push_fragment_begin_event_data_t;
 
+// Data for the event sent as fragments are transferred during push.
 typedef struct lore_branch_push_fragment_progress_event_data_t {
+  // The number of fragments transferred so far.
   uint64_t complete;
+  // The total number of fragments to transfer.
   uint64_t count;
+  // The number of bytes transferred so far.
   uint64_t bytes_transferred;
+  // The total number of bytes to transfer.
   uint64_t bytes_total;
 } lore_branch_push_fragment_progress_event_data_t;
 
+// Data for the event sent after fragments are transferred during push.
 typedef struct lore_branch_push_fragment_end_event_data_t {
+  // The number of fragments transferred.
   uint64_t fragments;
+  // The number of bytes transferred.
   uint64_t bytes_transferred;
 } lore_branch_push_fragment_end_event_data_t;
 
+// Data for the event sent before a branch is created on the remote.
 typedef struct lore_branch_push_branch_create_begin_event_data_t {
+  // The local revision the branch starts from.
   struct lore_hash_t local_revision;
 } lore_branch_push_branch_create_begin_event_data_t;
 
+// Data for the event sent after a branch is created on the remote.
 typedef struct lore_branch_push_branch_create_end_event_data_t {
+  // The revision the branch points to on the remote.
   struct lore_hash_t remote_revision;
 } lore_branch_push_branch_create_end_event_data_t;
 
+// Data for the event sent before a revision is pushed to the remote.
 typedef struct lore_branch_push_revision_push_begin_event_data_t {
+  // The latest revision of the branch on the remote.
   struct lore_hash_t remote_revision;
+  // The local revision being pushed.
   struct lore_hash_t local_revision;
 } lore_branch_push_revision_push_begin_event_data_t;
 
+// Data for the event sent when the remote assigns a pushed revision a new identity.
 typedef struct lore_branch_push_revision_push_update_event_data_t {
+  // The revision before the remote reassigned it.
   struct lore_hash_t old_revision;
+  // The revision the remote assigned.
   struct lore_hash_t new_revision;
+  // The sequential number of the new revision.
   uint64_t new_revision_number;
 } lore_branch_push_revision_push_update_event_data_t;
 
+// Data for the event sent after a revision is pushed to the remote.
 typedef struct lore_branch_push_revision_push_end_event_data_t {
+  // The branch revision on the remote before the push.
   struct lore_hash_t old_remote_revision;
+  // The branch revision on the remote after the push.
   struct lore_hash_t new_remote_revision;
+  // The sequential number of the new remote revision.
   uint64_t new_remote_revision_number;
+  // A message returned by the remote for the push.
   struct lore_string_t message;
+  // Set when the remote performed a fast-forward merge.
   uint8_t fast_forward_merged;
 } lore_branch_push_revision_push_end_event_data_t;
 
+// Event data reported when a branch is reset to a revision.
 typedef struct lore_branch_reset_event_data_t {
+  // Branch identifier.
   struct lore_context_t id;
+  // Branch name.
   struct lore_string_t name;
+  // Revision the branch was reset to.
   struct lore_hash_t revision;
 } lore_branch_reset_event_data_t;
 
+// Details of the branch involved in a branch switch.
 typedef struct lore_branch_switch_data_t {
+  // Branch identifier.
   lore_branch_id_t id;
+  // Branch name.
   struct lore_string_t name;
+  // Latest revision known locally for the branch.
   struct lore_hash_t latest_local;
+  // Latest revision known on the remote for the branch.
   struct lore_hash_t latest_remote;
+  // Revision the branch is switched to.
   struct lore_hash_t revision;
+  // Where the branch exists: local, remote, or both.
   enum lore_branch_location_t location;
 } lore_branch_switch_data_t;
 
+// Data for the event emitted when a branch switch starts.
 typedef struct lore_branch_switch_begin_event_data_t {
+  // Details of the branch being switched to.
   struct lore_branch_switch_data_t branch;
 } lore_branch_switch_begin_event_data_t;
 
+// Data for the event emitted when a branch switch finishes.
 typedef struct lore_branch_switch_end_event_data_t {
+  // Details of the branch that was switched to.
   struct lore_branch_switch_data_t branch;
 } lore_branch_switch_end_event_data_t;
 
+// Event data reported when a branch is unprotected.
 typedef struct lore_branch_unprotect_event_data_t {
+  // Name of the unprotected branch.
   struct lore_string_t name;
 } lore_branch_unprotect_event_data_t;
 
+// Data for the event reporting information about a single file or directory.
 typedef struct lore_file_info_event_data_t {
+  // Path of the file or directory.
   struct lore_string_t path;
+  // Context identifying the file or directory.
   struct lore_context_t context;
+  // Content hash of the file or directory.
   struct lore_hash_t hash;
+  // Set when the entry is a file.
   uint8_t is_file;
+  // Set when the entry is a directory.
   uint8_t is_dir;
+  // Set when the entry has been modified.
   uint8_t flag_modified;
+  // Set when the entry has been deleted.
   uint8_t flag_deleted;
+  // Set when the entry has been added.
   uint8_t flag_added;
+  // Set when the entry is in conflict.
   uint8_t flag_conflict;
+  // File mode bits.
   uint16_t mode;
+  // Size of the entry in the repository, in bytes.
   uint64_t size;
+  // Size of the entry on the local filesystem, in bytes.
   uint64_t local_size;
+  // Content hash of the entry on the local filesystem.
   struct lore_hash_t local_hash;
+  // Size of the entry after filters are applied, in bytes.
   uint64_t filter_size;
 } lore_file_info_event_data_t;
 
+// Data for the event carrying the diff of a single file.
 typedef struct lore_file_diff_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
+  // Unified-diff text describing the change.
   struct lore_string_t patch;
+  // Action applied to the file.
   enum lore_file_action_t action;
 } lore_file_diff_event_data_t;
 
+// Data for the event reporting the hash of a single file.
 typedef struct lore_file_hash_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
+  // Size of the file in bytes.
   uint64_t size;
+  // Content hash of the file.
   struct lore_hash_t hash;
 } lore_file_hash_event_data_t;
 
+// Data for the event describing one entry in a file's history.
 typedef struct lore_file_history_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
+  // Identifier of the repository.
   lore_repository_id_t repository;
+  // Revision this entry belongs to.
   struct lore_hash_t revision;
+  // Sequential number of the revision.
   uint64_t revision_number;
+  // Parent revisions of this revision.
   struct lore_hash_t parent[2];
+  // Address of the file content at this revision.
   struct lore_address_t address;
+  // Size of the file in bytes at this revision.
   uint64_t size;
+  // Action applied to the file at this revision.
   enum lore_file_action_t action;
 } lore_file_history_event_data_t;
 
+// Data for the event emitted when file content is written to a destination.
 typedef struct lore_file_write_event_data_t {
+  // Path that was written.
   struct lore_string_t path;
 } lore_file_write_event_data_t;
 
+// Data for the event emitted when file content is obliterated.
 typedef struct lore_file_obliterate_event_data_t {
+  // Address of the obliterated content.
   struct lore_address_t address;
+  // Number of fragments removed.
   uintptr_t num_fragments;
+  // Number of payloads removed.
   uintptr_t num_payloads;
 } lore_file_obliterate_event_data_t;
 
+// Data for the event reporting the stored representation of file content.
 typedef struct lore_file_dump_event_data_t {
+  // Address of the content.
   struct lore_address_t address;
+  // Flags describing the stored content.
   uint32_t flags;
+  // Size of the stored payload in bytes.
   uint32_t size_payload;
+  // Size of the content in bytes.
   uint64_t size_content;
+  // Set when a matching stored object was found.
   uint8_t match_made;
 } lore_file_dump_event_data_t;
 
+// Event data reported at the start of adding file dependencies.
 typedef struct lore_file_dependency_add_begin_event_data_t {
+  // Number of source files being processed.
   uint64_t path_count;
+  // Number of dependency edges being added.
   uint64_t dependency_count;
 } lore_file_dependency_add_begin_event_data_t;
 
+// Event data reported for each dependency edge being added.
 typedef struct lore_file_dependency_add_entry_event_data_t {
+  // Path of the source file that gains the dependency.
   struct lore_string_t path;
+  // Path of the file being depended on.
   struct lore_string_t dependency;
+  // Tags applied to this dependency edge.
   struct lore_string_array_t tags;
 } lore_file_dependency_add_entry_event_data_t;
 
+// Event data reported at the end of adding file dependencies.
 typedef struct lore_file_dependency_add_end_event_data_t {
+  // Number of dependency edges that were added.
   uint64_t added_count;
 } lore_file_dependency_add_end_event_data_t;
 
+// Event data reported at the start of removing file dependencies.
 typedef struct lore_file_dependency_remove_begin_event_data_t {
+  // Number of source files being processed.
   uint64_t path_count;
+  // Number of dependency edges being removed.
   uint64_t dependency_count;
 } lore_file_dependency_remove_begin_event_data_t;
 
+// Event data reported for each dependency edge being removed.
 typedef struct lore_file_dependency_remove_entry_event_data_t {
+  // Path of the source file that loses the dependency.
   struct lore_string_t path;
+  // Path of the file that was depended on.
   struct lore_string_t dependency;
+  // Tags on the dependency edge being removed.
   struct lore_string_array_t tags;
 } lore_file_dependency_remove_entry_event_data_t;
 
+// Event data reported at the end of removing file dependencies.
 typedef struct lore_file_dependency_remove_end_event_data_t {
+  // Number of dependency edges that were removed.
   uint64_t removed_count;
 } lore_file_dependency_remove_end_event_data_t;
 
+// Event data reported at the start of listing file dependencies.
 typedef struct lore_file_dependency_list_begin_event_data_t {
+  // Number of files being listed.
   uint64_t file_count;
 } lore_file_dependency_list_begin_event_data_t;
 
+// Event data reported at the start of listing a single file's dependencies.
 typedef struct lore_file_dependency_list_file_event_data_t {
+  // Path of the file whose dependencies are being listed.
   struct lore_string_t path;
+  // Number of dependency entries for this file.
   uint64_t entry_count;
 } lore_file_dependency_list_file_event_data_t;
 
+// Event data reported for each dependency entry in a listing.
 typedef struct lore_file_dependency_list_entry_event_data_t {
+  // Path of the dependency.
   struct lore_string_t path;
+  // Tags on this dependency edge.
   struct lore_string_array_t tags;
+  // Traversal depth, zero for a direct dependency.
   uint32_t depth;
 } lore_file_dependency_list_entry_event_data_t;
 
+// Event data reported at the end of listing a single file's dependencies.
 typedef struct lore_file_dependency_list_file_end_event_data_t {
+  // Path of the file whose dependencies were listed.
   struct lore_string_t path;
 } lore_file_dependency_list_file_end_event_data_t;
 
+// Event data reported at the end of listing file dependencies.
 typedef struct lore_file_dependency_list_end_event_data_t {
+  // Total number of dependency entries that were listed.
   uint64_t total_entry_count;
 } lore_file_dependency_list_end_event_data_t;
 
+// Data for the event emitted when a reset operation begins.
 typedef struct lore_file_reset_begin_event_data_t {
+  // Number of paths requested for reset.
   uintptr_t path_count;
 } lore_file_reset_begin_event_data_t;
 
+// Running counts of items processed during a reset operation.
 typedef struct lore_file_reset_count_data_t {
+  // Number of directories that were reset.
   uint64_t directory_reset_count;
+  // Number of directories that were deleted.
   uint64_t directory_delete_count;
+  // Number of files that were reset.
   uint64_t file_reset_count;
+  // Number of files that were deleted.
   uint64_t file_delete_count;
 } lore_file_reset_count_data_t;
 
+// Data for the progress event emitted periodically during a reset operation.
 typedef struct lore_file_reset_progress_event_data_t {
+  // Current counts of items processed.
   struct lore_file_reset_count_data_t count;
 } lore_file_reset_progress_event_data_t;
 
+// Data for the event emitted when a reset operation completes.
 typedef struct lore_file_reset_end_event_data_t {
+  // Final counts of items processed.
   struct lore_file_reset_count_data_t count;
 } lore_file_reset_end_event_data_t;
 
+// Data for the event emitted for each file affected by a reset operation.
 typedef struct lore_file_reset_file_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
+  // Action applied to the file.
   enum lore_file_action_t action;
+  // Previous path of the file, when it was moved.
   struct lore_string_t from_path;
 } lore_file_reset_file_event_data_t;
 
+// Data for the event emitted when a path is excluded by a filter.
 typedef struct lore_filter_exclude_event_data_t {
+  // Reason the path was excluded.
   uint8_t reason;
+  // Path that was excluded.
   struct lore_string_t path;
 } lore_filter_exclude_event_data_t;
 
+// Data for the event emitted when a stage operation begins.
 typedef struct lore_file_stage_begin_event_data_t {
+  // Number of paths requested for staging.
   uintptr_t path_count;
 } lore_file_stage_begin_event_data_t;
 
+// Running counts of items processed during a stage operation.
 typedef struct lore_file_stage_count_data_t {
+  // Number of directories staged as modified.
   uint64_t directory_modify_count;
+  // Number of directories staged as added.
   uint64_t directory_add_count;
+  // Number of directories staged as deleted.
   uint64_t directory_delete_count;
+  // Number of directories staged as moved.
   uint64_t directory_move_count;
+  // Number of files staged as modified.
   uint64_t file_modify_count;
+  // Number of files staged as added.
   uint64_t file_add_count;
+  // Number of files staged as deleted.
   uint64_t file_delete_count;
+  // Number of files staged as moved.
   uint64_t file_move_count;
+  // Total number of items processed.
   uint64_t total_count;
 } lore_file_stage_count_data_t;
 
+// Data for the progress event emitted periodically during a stage operation.
 typedef struct lore_file_stage_progress_event_data_t {
+  // Current counts of items processed.
   struct lore_file_stage_count_data_t count;
 } lore_file_stage_progress_event_data_t;
 
+// Data for the event emitted when a stage operation completes.
 typedef struct lore_file_stage_end_event_data_t {
+  // Final counts of items processed.
   struct lore_file_stage_count_data_t count;
 } lore_file_stage_end_event_data_t;
 
+// Data for the event identifying the repository and revision involved in a stage operation.
 typedef struct lore_file_stage_revision_event_data_t {
+  // Identifier of the repository.
   lore_repository_id_t repository;
+  // Revision the files are staged against.
   struct lore_hash_t revision;
 } lore_file_stage_revision_event_data_t;
 
+// Data for the event emitted for each file affected by a stage operation.
 typedef struct lore_file_stage_file_event_data_t {
+  // Previous path of the file, when it was moved.
   struct lore_string_t from_path;
+  // Path of the file.
   struct lore_string_t path;
+  // Action applied to the file.
   enum lore_file_action_t action;
 } lore_file_stage_file_event_data_t;
 
+// Data for the event emitted when an unstage operation begins.
 typedef struct lore_file_unstage_begin_event_data_t {
+  // Number of paths requested for unstaging.
   uintptr_t path_count;
 } lore_file_unstage_begin_event_data_t;
 
+// Running counts of items processed during an unstage operation.
 typedef struct lore_file_unstage_count_data_t {
+  // Number of directories that were unstaged.
   uint64_t directory_unstaged_count;
+  // Number of directories that were discarded.
   uint64_t directory_discarded_count;
+  // Number of files that were unstaged.
   uint64_t file_unstaged_count;
+  // Number of files that were discarded.
   uint64_t file_discarded_count;
+  // Total number of items processed.
   uint64_t total_count;
 } lore_file_unstage_count_data_t;
 
+// Data for the progress event emitted periodically during an unstage operation.
 typedef struct lore_file_unstage_progress_event_data_t {
+  // Current counts of items processed.
   struct lore_file_unstage_count_data_t count;
 } lore_file_unstage_progress_event_data_t;
 
+// Data for the event emitted when an unstage operation completes.
 typedef struct lore_file_unstage_end_event_data_t {
+  // Final counts of items processed.
   struct lore_file_unstage_count_data_t count;
 } lore_file_unstage_end_event_data_t;
 
+// Data for the event identifying the repository and revision involved in an unstage operation.
 typedef struct lore_file_unstage_revision_event_data_t {
+  // Identifier of the repository.
   lore_repository_id_t repository;
+  // Revision the files are unstaged against.
   struct lore_hash_t revision;
 } lore_file_unstage_revision_event_data_t;
 
+// Data for the event emitted for each file affected by an unstage operation.
 typedef struct lore_file_unstage_file_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
+  // Action applied to the file.
   enum lore_file_action_t action;
 } lore_file_unstage_file_event_data_t;
 
+// Header describing a stored piece of content.
+//
+// Records how the payload is stored and how large it is, both as held in
+// storage and once fully reassembled.
 typedef struct lore_fragment_t {
   // Flags
   uint32_t flags;
@@ -827,268 +1355,451 @@ typedef struct lore_fragment_t {
   uint64_t size_content;
 } lore_fragment_t;
 
+// Event data reporting a single fragment written or deduplicated.
 typedef struct lore_fragment_write_event_data_t {
+  // The fragment that was written
   struct lore_fragment_t fragment;
+  // Non-zero if the fragment already existed and was deduplicated
   uint8_t deduplicated;
 } lore_fragment_write_event_data_t;
 
+// Data for the event emitted when a layer is added.
 typedef struct lore_layer_add_event_data_t {
+  // Path in the outer repository where the layer is placed.
   struct lore_string_t target_path;
+  // Identifier of the source repository.
   lore_repository_id_t source_repository;
+  // Path inside the source repository where the layer starts.
   struct lore_string_t source_path;
+  // Metadata used to match revisions between the repositories.
   struct lore_string_t metadata;
+  // Revision of the source repository.
   struct lore_hash_t revision;
 } lore_layer_add_event_data_t;
 
+// Data for the event describing a single configured layer.
 typedef struct lore_layer_entry_event_data_t {
+  // Path in the outer repository where the layer is placed.
   struct lore_string_t target_path;
+  // Identifier of the source repository.
   lore_repository_id_t source_repository;
+  // Path inside the source repository where the layer starts.
   struct lore_string_t source_path;
+  // Metadata used to match revisions between the repositories.
   struct lore_string_t metadata;
+  // Revision of the source repository.
   struct lore_hash_t revision;
 } lore_layer_entry_event_data_t;
 
+// Data for the event emitted when a layer is removed.
 typedef struct lore_layer_remove_event_data_t {
+  // Path in the outer repository where the layer was placed.
   struct lore_string_t target_path;
+  // Identifier of the source repository.
   lore_repository_id_t source_repository;
+  // Path inside the source repository where the layer started.
   struct lore_string_t source_path;
+  // Revision of the source repository.
   struct lore_hash_t revision;
+  // Set when removal was forced.
   uint8_t forced;
+  // Set when the layer files were purged from disk.
   uint8_t purged;
+  // Number of files removed.
   uint64_t file_count;
+  // Number of directories removed.
   uint64_t directory_count;
+  // Number of modified files encountered.
   uint64_t modified_count;
 } lore_layer_remove_event_data_t;
 
+// Data for the event describing a layer that has staged changes.
 typedef struct lore_layer_staged_entry_event_data_t {
+  // Path in the outer repository where the layer is placed.
   struct lore_string_t target_path;
+  // Identifier of the source repository.
   lore_repository_id_t source_repository;
+  // Number of staged files in the layer.
   uint64_t staged_file_count;
 } lore_layer_staged_entry_event_data_t;
 
+// Data for an event reporting a change to a link.
 typedef struct lore_link_change_event_data_t {
+  // Path of the link within the parent repository.
   struct lore_string_t link_path;
+  // Identifier of the repository the link points to.
   lore_repository_id_t link_repository;
+  // Identifier of the branch the link is pinned to.
   lore_branch_id_t branch;
+  // Hash of the revision the link is pinned to.
   struct lore_hash_t revision;
+  // Kind of change applied to the link.
   enum lore_file_action_t action;
 } lore_link_change_event_data_t;
 
+// Data for an event describing a single link in a repository.
 typedef struct lore_link_entry_event_data_t {
+  // Identifier of the repository the link points to.
   lore_repository_id_t link;
+  // Identifier of the link node in the parent repository.
   uint32_t link_node;
+  // Path of the link within the parent repository.
   struct lore_string_t link_path;
+  // Identifier of the source node in the linked repository.
   uint32_t source_node;
+  // Path of the source within the linked repository.
   struct lore_string_t source_path;
+  // Identifier of the branch the link is pinned to.
   lore_branch_id_t branch;
+  // Name of the branch the link is pinned to.
   struct lore_string_t branch_name;
+  // Hash of the revision the link is pinned to.
   struct lore_hash_t revision;
+  // Link flags.
   uint32_t flags;
 } lore_link_entry_event_data_t;
 
+// Data for an event reporting a path whose lock was acquired.
 typedef struct lore_lock_file_acquire_event_data_t {
+  // Path whose lock was acquired.
   struct lore_string_t path;
 } lore_lock_file_acquire_event_data_t;
 
+// Data for an event reporting a path that was skipped because its lock was already held.
 typedef struct lore_lock_file_acquire_ignore_event_data_t {
+  // Path that was skipped.
   struct lore_string_t path;
 } lore_lock_file_acquire_ignore_event_data_t;
 
+// Data for an event that marks the start of a lock status report.
 typedef struct lore_lock_file_status_begin_event_data_t {
+  // Number of status entries that follow.
   uint64_t count;
 } lore_lock_file_status_begin_event_data_t;
 
+// Data for an event reporting the lock status of a single path.
 typedef struct lore_lock_file_status_event_data_t {
+  // Path the status applies to.
   struct lore_string_t path;
+  // Identifier of the user that holds the lock.
   struct lore_string_t owner;
+  // Timestamp recorded when the lock was acquired.
   uint64_t locked_at;
 } lore_lock_file_status_event_data_t;
 
+// Data for an event that marks the start of a lock query result.
 typedef struct lore_lock_file_query_begin_event_data_t {
+  // Number of query entries that follow.
   uint64_t count;
 } lore_lock_file_query_begin_event_data_t;
 
+// Data for an event reporting a single lock matched by a query.
 typedef struct lore_lock_file_query_event_data_t {
+  // Identifier of the branch the lock belongs to.
   lore_branch_id_t branch;
+  // Path the lock applies to.
   struct lore_string_t path;
+  // Identifier of the user that holds the lock.
   struct lore_string_t owner;
+  // Timestamp recorded when the lock was acquired.
   uint64_t locked_at;
 } lore_lock_file_query_event_data_t;
 
+// Data for an event reporting a path whose lock was released.
 typedef struct lore_lock_file_release_event_data_t {
+  // Path whose lock was released.
   struct lore_string_t path;
 } lore_lock_file_release_event_data_t;
 
+// Data for an event reporting that no matching lock was found to release.
 typedef struct lore_lock_file_release_not_found_event_data_t {
+  // Placeholder field; carries no meaningful value.
   uint32_t _unused;
 } lore_lock_file_release_not_found_event_data_t;
 
+// Data for an event reporting that a file's metadata was cleared.
 typedef struct lore_metadata_clear_file_event_data_t {
+  // Path of the file whose metadata was cleared.
   struct lore_string_t path;
 } lore_metadata_clear_file_event_data_t;
 
+// Data for an event reporting that revision metadata was cleared.
 typedef struct lore_metadata_clear_revision_event_data_t {
+  // Hash of the revision whose metadata was cleared.
   struct lore_hash_t revision;
 } lore_metadata_clear_revision_event_data_t;
 
+// Event data naming a path that was ignored or could not be resolved.
 typedef struct lore_path_ignore_event_data_t {
+  // The ignored path
   struct lore_string_t path;
 } lore_path_ignore_event_data_t;
 
+// Data for the event emitted when a repository is created.
 typedef struct lore_repository_create_event_data_t {
+  // Identifier of the created repository.
   lore_repository_id_t id;
+  // Name of the created repository.
   struct lore_string_t name;
+  // Local path of the created repository.
   struct lore_string_t path;
 } lore_repository_create_event_data_t;
 
+// Data for the event emitted when a clone starts.
 typedef struct lore_repository_clone_begin_event_data_t {
+  // Identifier of the repository being cloned.
   lore_repository_id_t repository;
+  // Name of the branch being cloned.
   struct lore_string_t branch;
+  // Revision being cloned.
   struct lore_hash_t revision;
+  // Local path the clone is written to.
   struct lore_string_t path;
 } lore_repository_clone_begin_event_data_t;
 
+// Progress counts for a clone operation.
 typedef struct lore_repository_clone_count_data_t {
+  // Number of files finished.
   uint64_t file_complete;
+  // Number of files kept as they already matched.
   uint64_t file_retain;
+  // Number of files replaced.
   uint64_t file_replace;
+  // Total number of files discovered to process.
   uint64_t file_count;
+  // Number of files currently being processed.
   uint64_t file_inflight;
+  // Number of fragment fetches currently in flight.
   uint64_t fragment_inflight;
+  // Number of bytes transferred so far.
   uint64_t bytes_transferred;
+  // Total number of bytes to transfer.
   uint64_t bytes_total;
+  // Non-zero once file discovery has finished.
   uint8_t discovery_complete;
 } lore_repository_clone_count_data_t;
 
+// Data for the event emitted to report clone progress.
 typedef struct lore_repository_clone_progress_event_data_t {
+  // Current progress counts.
   struct lore_repository_clone_count_data_t count;
 } lore_repository_clone_progress_event_data_t;
 
+// Data for the event emitted when a clone finishes.
 typedef struct lore_repository_clone_end_event_data_t {
+  // Name of the branch that was cloned.
   struct lore_string_t branch;
+  // Revision that was cloned.
   struct lore_hash_t revision;
+  // Final progress counts.
   struct lore_repository_clone_count_data_t count;
 } lore_repository_clone_end_event_data_t;
 
+// Event data reported at the start of dependency resolution.
 typedef struct lore_dependency_resolve_begin_event_data_t {
+  // Number of root files resolution starts from.
   uint64_t root_count;
 } lore_dependency_resolve_begin_event_data_t;
 
+// Event data reported for each resolved dependency edge.
 typedef struct lore_dependency_resolve_item_event_data_t {
+  // Path of the file the dependency comes from.
   struct lore_string_t source;
+  // Path of the file the dependency points to.
   struct lore_string_t target;
+  // Tags on this dependency edge.
   struct lore_string_array_t tags;
 } lore_dependency_resolve_item_event_data_t;
 
+// Event data reported at the end of dependency resolution.
 typedef struct lore_dependency_resolve_end_event_data_t {
+  // Number of dependency edges that were resolved.
   uint64_t resolved_count;
 } lore_dependency_resolve_end_event_data_t;
 
+// Descriptive data for a repository.
 typedef struct lore_repository_data_event_data_t {
+  // Remote URL of the repository.
   struct lore_string_t remote_url;
+  // Repository identifier.
   lore_repository_id_t id;
+  // Repository name.
   struct lore_string_t name;
+  // Repository description.
   struct lore_string_t description;
+  // Identifier of the default branch.
   lore_branch_id_t default_branch;
+  // Name of the default branch.
   struct lore_string_t default_branch_name;
+  // Name of the user who created the repository.
   struct lore_string_t creator;
+  // Creation time of the repository, in seconds since the Unix epoch.
   uint64_t created;
 } lore_repository_data_event_data_t;
 
+// Data for the event emitted when a repository configuration value is read.
 typedef struct lore_repository_config_get_event_data_t {
+  // Configuration key.
   struct lore_string_t key;
+  // Configuration value for the key.
   struct lore_string_t value;
 } lore_repository_config_get_event_data_t;
 
+// Data for the event emitted when a repository dump starts.
 typedef struct lore_repository_dump_begin_event_data_t {
+  // Repository identifier.
   lore_repository_id_t repository;
+  // Revision being dumped.
   struct lore_hash_t revision;
 } lore_repository_dump_begin_event_data_t;
 
+// Data for the event emitted when a repository dump finishes.
 typedef struct lore_repository_dump_end_event_data_t {
+  // Placeholder field. The event carries no data.
   uint32_t _unused;
 } lore_repository_dump_end_event_data_t;
 
+// One entry in a repository listing.
 typedef struct lore_repository_list_entry_event_data_t {
+  // Repository identifier.
   lore_repository_id_t id;
+  // Repository name.
   struct lore_string_t name;
 } lore_repository_list_entry_event_data_t;
 
 // Event data describing an instance — used for both listing and prune notifications.
 typedef struct lore_repository_instance_event_data_t {
+  // Identifier of the instance
   struct lore_instance_id_t instance_id;
+  // Filesystem path of the instance
   struct lore_string_t path;
+  // Name of the branch the instance has checked out
   struct lore_string_t branch_name;
+  // Identifier of the branch the instance has checked out
   lore_branch_id_t branch;
+  // Current revision hash for the instance
   struct lore_hash_t revision;
+  // Non-zero if the instance path no longer exists on disk
   uint8_t stale;
 } lore_repository_instance_event_data_t;
 
+// Data for the event emitted when state verification starts.
 typedef struct lore_repository_verify_state_begin_event_data_t {
+  // Placeholder field. The event carries no data.
   uint32_t _unused;
 } lore_repository_verify_state_begin_event_data_t;
 
+// Data for the event emitted when state verification finishes.
 typedef struct lore_repository_verify_state_end_event_data_t {
+  // Identifier of the staged state after healing. Zero when nothing was healed.
   struct lore_hash_t healed_staged_state;
 } lore_repository_verify_state_end_event_data_t;
 
+// One stored copy of a fragment found during fragment verification.
 typedef struct lore_repository_verify_fragment_match_event_data_t {
+  // Slot the match was found in.
   uint32_t slot;
+  // Index of the match within the slot.
   uint32_t index;
+  // Identifier of the repository the match belongs to.
   lore_repository_id_t repository;
+  // Hash part of the fragment address.
   struct lore_hash_t address_hash;
+  // Context part of the fragment address.
   struct lore_context_t address_context;
+  // Storage flags recorded for the fragment.
   uint32_t flags;
+  // Stored size of the fragment payload in bytes.
   uint32_t size_payload;
+  // Size of the fragment content in bytes.
   uint64_t size_content;
+  // Offset of the fragment within its pack file.
   uint32_t pack_offset;
+  // Index of the pack file holding the fragment.
   uint32_t pack_file;
+  // Time the fragment was last accessed, in seconds since the Unix epoch.
   uint64_t last_access;
 } lore_repository_verify_fragment_match_event_data_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_repository_verify_fragment_match_event_data_array_t {
+  // Pointer to the first element.
   const struct lore_repository_verify_fragment_match_event_data_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_repository_verify_fragment_match_event_data_array_t;
 
+// Result of verifying a single fragment, including every stored copy found.
 typedef struct lore_repository_verify_fragment_event_data_t {
+  // Hash of the fragment that was verified.
   struct lore_hash_t hash;
+  // Index of the group the fragment belongs to.
   uint32_t group_index;
+  // Index of the bucket the fragment belongs to.
   uint32_t bucket_index;
+  // Path of the index file examined for the fragment.
   struct lore_string_t index_path;
+  // Number of entries in the index.
   uint32_t entry_count;
+  // Number of entries in the pack file.
   uint32_t packfile_entry_count;
+  // Number of stored copies found for the fragment.
   uint32_t match_count;
+  // The stored copies found for the fragment.
   struct lore_repository_verify_fragment_match_event_data_array_t matches;
+  // Error message produced during verification. Empty on success.
   struct lore_string_t error;
 } lore_repository_verify_fragment_event_data_t;
 
+// Result of verifying a single fragment on the remote.
 typedef struct lore_repository_verify_fragment_remote_event_data_t {
+  // Hash part of the fragment address.
   struct lore_hash_t address_hash;
+  // Context part of the fragment address.
   struct lore_context_t address_context;
+  // Non-zero when the fragment was found to be corrupted.
   uint8_t corrupted;
+  // Non-zero when the fragment was healed.
   uint8_t healed;
+  // Error message produced during verification. Empty on success.
   struct lore_string_t error;
 } lore_repository_verify_fragment_remote_event_data_t;
 
+// Data for an event summarizing a dumped repository state.
 typedef struct lore_repository_state_dump_event_data_t {
+  // Sequence number of the revision.
   uint64_t revision_number;
+  // Hash of the revision.
   struct lore_hash_t revision;
+  // Hash of the state's node tree.
   struct lore_hash_t tree_hash;
+  // Size of the node tree in bytes.
   uint64_t tree_size;
 } lore_repository_state_dump_event_data_t;
 
+// Data for an event describing a single node in a dumped repository state.
 typedef struct lore_repository_state_dump_node_event_data_t {
+  // Name of the node.
   struct lore_string_t name;
+  // Identifier of the node.
   uint32_t id;
+  // Identifier of the parent node.
   uint32_t parent;
+  // Identifier of the next sibling node.
   uint32_t sibling;
+  // File mode of the node.
   uint16_t mode;
+  // Size of the node's content in bytes.
   uint64_t size;
+  // Node flags.
   uint16_t flags;
+  // Type-specific detail for the node.
   struct lore_string_t type_data;
 } lore_repository_state_dump_node_event_data_t;
 
+// Revision status of a repository, describing the current, local, and remote
+// positions of the active branch.
 typedef struct lore_repository_status_revision_event_data_t {
   // Repository identifier
   lore_repository_id_t repository;
@@ -1126,22 +1837,37 @@ typedef struct lore_repository_status_revision_event_data_t {
   uint8_t remote_branch_exist;
 } lore_repository_status_revision_event_data_t;
 
+// Status of a single file or node reported by a repository status operation.
 typedef struct lore_repository_status_file_event_data_t {
+  // Path of the file relative to the repository root.
   struct lore_string_t path;
+  // Size of the file in bytes.
   uint64_t size;
+  // Change applied to the file, such as add, modify, delete, or move.
   enum lore_file_action_t action;
+  // Kind of node: file, directory, or link.
   enum lore_node_type_t type;
+  // Non-zero when the change is staged.
   uint8_t flag_staged;
+  // Non-zero when the change comes from a merge.
   uint8_t flag_merged;
+  // Non-zero when the file is in conflict.
   uint8_t flag_conflict;
+  // Non-zero when the conflict is not yet resolved.
   uint8_t flag_conflict_unresolved;
+  // Non-zero when the conflict was resolved automatically.
   uint8_t flag_conflict_automerged;
+  // Non-zero when the local side was chosen to resolve the conflict.
   uint8_t flag_conflict_mine;
+  // Non-zero when the incoming side was chosen to resolve the conflict.
   uint8_t flag_conflict_theirs;
+  // Non-zero when the file differs from the recorded state.
   uint8_t flag_dirty;
+  // Previous path of the file when it was moved or copied. Empty otherwise.
   struct lore_string_t from_path;
 } lore_repository_status_file_event_data_t;
 
+// Counts of directories and files in the repository tree.
 typedef struct lore_repository_status_count_event_data_t {
   // Number of directories in the tree, view-filtered (staged state if
   // present, otherwise the current revision)
@@ -1156,13 +1882,19 @@ typedef struct lore_repository_status_count_event_data_t {
 // the changes detected against the filesystem; for `--check-dirty` they are
 // the nodes that remained dirty after the filesystem verification.
 typedef struct lore_repository_status_summary_event_data_t {
+  // Number of files added.
   uint64_t adds;
+  // Number of files deleted.
   uint64_t deletes;
+  // Number of files modified.
   uint64_t modifies;
+  // Number of files moved.
   uint64_t moves;
+  // Number of files copied.
   uint64_t copies;
 } lore_repository_status_summary_event_data_t;
 
+// Result of a query against the immutable store for a single fragment.
 typedef struct lore_repository_store_immutable_query_event_data_t {
   // Address of fragment
   struct lore_address_t address;
@@ -1186,123 +1918,203 @@ typedef struct lore_repository_store_immutable_query_event_data_t {
   uint64_t content_size;
 } lore_repository_store_immutable_query_event_data_t;
 
+// Event data reported at the start of a commit.
 typedef struct lore_revision_commit_begin_event_data_t {
+  // Unused placeholder field.
   uint32_t _unused;
 } lore_revision_commit_begin_event_data_t;
 
+// Progress counters describing how far a commit has advanced.
 typedef struct lore_revision_commit_count_data_t {
+  // Number of directories processed so far.
   uint64_t directory_count;
+  // Total number of directories to process.
   uint64_t directory_total;
+  // Number of files processed so far.
   uint64_t file_count;
+  // Total number of files to process.
   uint64_t file_total;
+  // Number of directories deleted.
   uint64_t directory_delete_count;
+  // Number of files modified.
   uint64_t file_modify_count;
+  // Number of files deleted.
   uint64_t file_delete_count;
+  // Number of content bytes transferred so far.
   uint64_t bytes_transferred;
+  // Total number of content bytes to transfer.
   uint64_t bytes_total;
+  // Set when file and directory discovery has finished.
   uint8_t discovery_complete;
 } lore_revision_commit_count_data_t;
 
+// Event data reporting commit progress.
 typedef struct lore_revision_commit_progress_event_data_t {
+  // Current progress counters.
   struct lore_revision_commit_count_data_t count;
 } lore_revision_commit_progress_event_data_t;
 
+// Event data reported at the end of a commit.
 typedef struct lore_revision_commit_end_event_data_t {
+  // Final progress counters.
   struct lore_revision_commit_count_data_t count;
 } lore_revision_commit_end_event_data_t;
 
+// Event data describing a revision produced by a commit.
 typedef struct lore_revision_commit_revision_event_data_t {
+  // Identifier of the repository the revision belongs to.
   lore_repository_id_t repository;
+  // Identifier of the branch the revision was committed on.
   lore_branch_id_t branch;
+  // Signature of the committed revision.
   struct lore_hash_t revision;
+  // Sequential number of the revision.
   uint64_t revision_number;
+  // Signature of the first parent revision.
   struct lore_hash_t parent;
+  // Signature of the second parent revision, set for a merge.
   struct lore_hash_t parent_other;
 } lore_revision_commit_revision_event_data_t;
 
+// Summary information about a single revision.
 typedef struct lore_revision_info_event_data_t {
+  // Repository identifier the revision belongs to.
   lore_repository_id_t repository;
+  // Revision hash signature.
   struct lore_hash_t revision;
+  // Revision number.
   uint64_t revision_number;
+  // Parent revision hashes; the first is the direct parent and the second
+  // is the other parent of a merge, or zero when there is none.
   struct lore_hash_t parent[2];
 } lore_revision_info_event_data_t;
 
+// Per-file change information between a revision and its parent.
 typedef struct lore_revision_info_delta_event_data_t {
+  // Path of the file relative to the repository root.
   struct lore_string_t path;
+  // Size of the file in bytes.
   uint64_t size;
+  // Action applied to the file.
   enum lore_file_action_t action;
+  // Flag indicating the file content was modified.
   uint8_t flag_modify;
+  // Flag indicating the change came from a merge.
   uint8_t flag_merged;
+  // Flag indicating the entry is a file rather than a directory.
   uint8_t flag_file;
 } lore_revision_info_delta_event_data_t;
 
+// Details of a single file that differs between two revisions.
 typedef struct lore_revision_diff_file_event_data_t {
+  // Path of the file relative to the repository root.
   struct lore_string_t path;
+  // Action applied to the file.
   enum lore_file_action_t action;
+  // Flag indicating the entry on the source side is a file rather than a directory.
   uint8_t old_is_file;
+  // Flag indicating the entry on the target side is a file rather than a directory.
   uint8_t new_is_file;
+  // Address of the file content on the source side.
   struct lore_address_t old_address;
+  // Address of the file content on the target side.
   struct lore_address_t new_address;
 } lore_revision_diff_file_event_data_t;
 
+// Data for the event reporting a revision found by a search.
 typedef struct lore_revision_find_event_data_t {
+  // Signature of the revision that was found.
   struct lore_hash_t signature;
 } lore_revision_find_event_data_t;
 
+// Header information for a revision history listing.
 typedef struct lore_revision_history_event_data_t {
+  // Repository identifier the history belongs to.
   lore_repository_id_t repository;
+  // Branch identifier the history is listed for.
   lore_branch_id_t branch;
 } lore_revision_history_event_data_t;
 
+// A single entry in a revision history listing.
 typedef struct lore_revision_history_entry_event_data_t {
+  // Revision hash signature.
   struct lore_hash_t revision;
+  // Revision number.
   uint64_t revision_number;
+  // Parent revision hashes; the first is the direct parent and the second
+  // is the other parent of a merge, or zero when there is none.
   struct lore_hash_t parent[2];
 } lore_revision_history_entry_event_data_t;
 
+// Event data reported at the start of the file phase of a restore.
 typedef struct lore_revision_restore_file_begin_event_data_t {
+  // Number of files to process.
   uintptr_t count;
 } lore_revision_restore_file_begin_event_data_t;
 
+// Event data reported for a single file during a restore.
 typedef struct lore_revision_restore_file_event_data_t {
+  // Path of the file.
   struct lore_string_t path;
+  // Action applied to the file.
   enum lore_file_action_t action;
+  // Size of the file in bytes.
   uint64_t size;
+  // Flag indicating the entry is a file.
   uint8_t is_file;
+  // Flag indicating the entry is a directory.
   uint8_t is_directory;
+  // Flag indicating the entry is a module.
   uint8_t is_module;
 } lore_revision_restore_file_event_data_t;
 
+// Event data reported at the end of the file phase of a restore.
 typedef struct lore_revision_restore_file_end_event_data_t {
+  // Number of files processed.
   uintptr_t count;
 } lore_revision_restore_file_end_event_data_t;
 
+// Event data reported at the start of the fragment phase of a restore.
 typedef struct lore_revision_restore_fragment_begin_event_data_t {
+  // Number of fragments to transfer.
   uint64_t fragments;
 } lore_revision_restore_fragment_begin_event_data_t;
 
+// Event data reported on progress of the fragment phase of a restore.
 typedef struct lore_revision_restore_fragment_progress_event_data_t {
+  // Number of fragments completed.
   uint64_t complete;
+  // Total number of fragments.
   uint64_t count;
 } lore_revision_restore_fragment_progress_event_data_t;
 
+// Event data reported at the end of the fragment phase of a restore.
 typedef struct lore_revision_restore_fragment_end_event_data_t {
+  // Number of fragments transferred.
   uint64_t fragments;
 } lore_revision_restore_fragment_end_event_data_t;
 
+// Event data reported with the resulting revision of a restore.
 typedef struct lore_revision_restore_revision_event_data_t {
+  // Resulting revision hash signature.
   struct lore_hash_t revision;
+  // Resulting revision number.
   uint64_t revision_number;
 } lore_revision_restore_revision_event_data_t;
 
+// Event data reported at the start of the sync phase of a restore.
 typedef struct lore_revision_restore_sync_begin_event_data_t {
+  // Number of changes to apply.
   uintptr_t count;
 } lore_revision_restore_sync_begin_event_data_t;
 
+// Event data reported at the end of the sync phase of a restore.
 typedef struct lore_revision_restore_sync_end_event_data_t {
+  // Number of changes applied.
   uintptr_t count;
 } lore_revision_restore_sync_end_event_data_t;
 
+// Information about a revision being resolved from a signature.
 typedef struct lore_revision_resolve_event_data_t {
   // Repository identifier in which repository
   lore_repository_id_t repository;
@@ -1318,6 +2130,7 @@ typedef struct lore_revision_resolve_event_data_t {
   uint8_t local;
 } lore_revision_resolve_event_data_t;
 
+// Source and target revisions selected for a sync.
 typedef struct lore_revision_sync_target_event_data_t {
   // Remote URL
   struct lore_string_t remote;
@@ -1341,13 +2154,19 @@ typedef struct lore_revision_sync_target_event_data_t {
   uint8_t local;
 } lore_revision_sync_target_event_data_t;
 
+// Details of a single file changed by a sync.
 typedef struct lore_revision_sync_file_event_data_t {
+  // Path of the file relative to the repository root.
   struct lore_string_t path;
+  // Size of the file in bytes.
   uint64_t size;
+  // Action applied to the file.
   enum lore_file_action_t action;
+  // Flag indicating the entry is a file rather than a directory.
   uint8_t flag_file;
 } lore_revision_sync_file_event_data_t;
 
+// The revision that resulted from a sync.
 typedef struct lore_revision_sync_revision_event_data_t {
   // Branch (if any)
   lore_branch_id_t branch;
@@ -1361,73 +2180,115 @@ typedef struct lore_revision_sync_revision_event_data_t {
   uint8_t flag_conflict;
 } lore_revision_sync_revision_event_data_t;
 
+// Progress of a bisect search across a range of revisions.
 typedef struct lore_revision_bisect_event_data_t {
+  // Revision number at the start of the search range.
   uint64_t start_revision_number;
+  // Revision number selected to test next.
   uint64_t target_revision_number;
+  // Revision number at the end of the search range.
   uint64_t end_revision_number;
+  // Flag indicating the search has finished.
   uint8_t done;
 } lore_revision_bisect_event_data_t;
 
+// Data for a notification that a branch was created.
 typedef struct lore_notification_branch_created_event_data_t {
+  // Identifier of the created branch.
   lore_branch_id_t branch;
 } lore_notification_branch_created_event_data_t;
 
+// Data for a notification that a branch was deleted.
 typedef struct lore_notification_branch_deleted_event_data_t {
+  // Identifier of the deleted branch.
   lore_branch_id_t branch;
 } lore_notification_branch_deleted_event_data_t;
 
+// Data for a notification that a branch received a new revision.
 typedef struct lore_notification_branch_pushed_event_data_t {
+  // Hash of the pushed revision.
   struct lore_hash_t revision;
+  // Sequence number of the pushed revision.
   uint64_t revision_number;
+  // Identifier of the branch that received the revision.
   lore_branch_id_t branch;
+  // Identifier of the user that pushed the revision.
   struct lore_string_t user_id;
 } lore_notification_branch_pushed_event_data_t;
 
+// Data for a notification that resources were locked.
 typedef struct lore_notification_resource_locked_event_data_t {
+  // Identifier of the user that locked the resources.
   struct lore_string_t user_id;
+  // Identifier of the branch the resources belong to.
   lore_branch_id_t branch;
+  // Paths of the locked resources.
   struct lore_string_array_t paths;
 } lore_notification_resource_locked_event_data_t;
 
+// Data for a notification that resources were unlocked.
 typedef struct lore_notification_resource_unlocked_event_data_t {
+  // Identifier of the user that unlocked the resources.
   struct lore_string_t user_id;
+  // Identifier of the branch the resources belong to.
   lore_branch_id_t branch;
+  // Paths of the unlocked resources.
   struct lore_string_array_t paths;
 } lore_notification_resource_unlocked_event_data_t;
 
+// Data for a notification that a subscription to a repository was established.
 typedef struct lore_notification_subscribed_event_data_t {
+  // Identifier of the subscribed repository.
   lore_repository_id_t repository;
 } lore_notification_subscribed_event_data_t;
 
+// Data for a notification that a subscription to a repository was removed.
 typedef struct lore_notification_unsubscribed_event_data_t {
+  // Identifier of the unsubscribed repository.
   lore_repository_id_t repository;
 } lore_notification_unsubscribed_event_data_t;
 
+// Data for an event reporting that a shared store was created.
 typedef struct lore_shared_store_create_event_data_t {
+  // Filesystem path of the created shared store.
   struct lore_string_t path;
 } lore_shared_store_create_event_data_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_uint8_array_t {
+  // Pointer to the first element.
   const uint8_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_uint8_array_t;
 
+// Data for an event describing the configured shared stores.
 typedef struct lore_shared_store_info_event_data_t {
+  // Nonzero when a shared store is used automatically for the repository.
   uint8_t use_automatically;
+  // Remote URLs of the shared stores.
   struct lore_string_array_t remote_urls;
+  // Filesystem paths of the shared stores.
   struct lore_string_array_t paths;
+  // Per-store flag, nonzero when the store exists on disk.
   struct lore_uint8_array_t exists;
 } lore_shared_store_info_event_data_t;
 
+// Data for an event describing a link that has staged changes.
 typedef struct lore_link_staged_entry_event_data_t {
+  // Path of the link within the parent repository.
   struct lore_string_t path;
+  // Identifier of the repository the link points to.
   lore_repository_id_t repository;
+  // Number of staged files inside the link.
   uint64_t staged_file_count;
 } lore_link_staged_entry_event_data_t;
 
 // Delivered on successful `lore_storage_open`. Carries the handle id the
 // caller must pass to subsequent ops against this store.
 typedef struct lore_storage_opened_event_data_t {
+  // Handle id for the opened store.
   uint64_t handle_id;
 } lore_storage_opened_event_data_t;
 
@@ -1435,16 +2296,22 @@ typedef struct lore_storage_opened_event_data_t {
 // `error_code == None` and `address` is the computed content hash; on
 // failure `error_code` is populated and `address` is zero.
 typedef struct lore_storage_put_item_complete_event_data_t {
+  // Correlation id of the item.
   uint64_t id;
+  // The computed content address of the stored item.
   struct lore_address_t address;
+  // The outcome for the item.
   enum lore_error_code_t error_code;
 } lore_storage_put_item_complete_event_data_t;
 
 // Leading event for each regular `get` item. Reports the total
 // reassembled content size before any `GET_DATA` events arrive.
 typedef struct lore_storage_get_header_event_data_t {
+  // Correlation id of the item.
   uint64_t id;
+  // The content address of the item.
   struct lore_address_t address;
+  // The total reassembled content size in bytes.
   uint64_t size_content;
 } lore_storage_get_header_event_data_t;
 
@@ -1453,16 +2320,22 @@ typedef struct lore_storage_get_header_event_data_t {
 // The pointer is valid only for the duration of the callback that receives
 // it; callers must copy the bytes if they need them beyond that scope.
 typedef struct lore_bytes_t {
+  // Pointer to the start of the byte slice.
   const void *ptr;
+  // Number of bytes in the slice.
   uintptr_t len;
 } lore_bytes_t;
 
 // Per-fragment (or single-buffer) payload event for `get`. The `bytes`
 // view is valid only during the callback invocation.
 typedef struct lore_storage_get_data_event_data_t {
+  // Correlation id of the item.
   uint64_t id;
+  // The content address of the item.
   struct lore_address_t address;
+  // The byte offset of this payload within the item's content.
   uint64_t offset;
+  // The payload bytes for this part of the item.
   struct lore_bytes_t bytes;
 } lore_storage_get_data_event_data_t;
 
@@ -1470,8 +2343,11 @@ typedef struct lore_storage_get_data_event_data_t {
 // is emitted without any preceding `HEADER`/`DATA` events — the payload
 // is written directly to the filesystem.
 typedef struct lore_storage_get_item_complete_event_data_t {
+  // Correlation id of the item.
   uint64_t id;
+  // The content address of the item.
   struct lore_address_t address;
+  // The outcome for the item.
   enum lore_error_code_t error_code;
 } lore_storage_get_item_complete_event_data_t;
 
@@ -1481,9 +2357,13 @@ typedef struct lore_storage_get_item_complete_event_data_t {
 // any preceding `GET_HEADER` / `GET_DATA` events — `get_metadata` carries no
 // payload bytes.
 typedef struct lore_storage_get_metadata_item_complete_event_data_t {
+  // Correlation id of the item.
   uint64_t id;
+  // The content address of the item.
   struct lore_address_t address;
+  // The metadata fragment for the item.
   struct lore_fragment_t fragment;
+  // The outcome for the item.
   enum lore_error_code_t error_code;
 } lore_storage_get_metadata_item_complete_event_data_t;
 
@@ -1493,11 +2373,17 @@ typedef struct lore_storage_get_metadata_item_complete_event_data_t {
 // destination tuple's context — the destination address is `(target_partition,
 // source_address.hash, target_context)`.
 typedef struct lore_storage_copy_item_complete_event_data_t {
+  // Correlation id of the item.
   uint64_t id;
+  // The partition the item was copied from.
   struct lore_partition_t source_partition;
+  // The partition the item was copied to.
   struct lore_partition_t target_partition;
+  // The address of the item in the source.
   struct lore_address_t source_address;
+  // The context of the item in the target.
   struct lore_context_t target_context;
+  // The outcome for the item.
   enum lore_error_code_t error_code;
 } lore_storage_copy_item_complete_event_data_t;
 
@@ -1508,38 +2394,54 @@ typedef struct lore_storage_copy_item_complete_event_data_t {
 // rather than a misleading `1`. `error_code` is populated if either side that DID run
 // failed.
 typedef struct lore_storage_obliterate_item_complete_event_data_t {
+  // Correlation id of the item.
   uint64_t id;
+  // The content address of the item.
   struct lore_address_t address;
+  // 1 when the local side completed without error.
   uint8_t local_success;
+  // 1 when the remote side completed without error.
   uint8_t remote_success;
+  // 1 when the local side was skipped.
   uint8_t local_skipped;
+  // 1 when the remote side was skipped.
   uint8_t remote_skipped;
+  // The outcome for the item.
   enum lore_error_code_t error_code;
 } lore_storage_obliterate_item_complete_event_data_t;
 
 // Terminal per-item event for `upload`. `already_durable` is 1 when the
 // item was already flagged durable and no upload was performed.
 typedef struct lore_storage_upload_item_complete_event_data_t {
+  // Correlation id of the item.
   uint64_t id;
+  // The content address of the item.
   struct lore_address_t address;
+  // 1 when the item was already durable and no upload was performed.
   uint8_t already_durable;
+  // The outcome for the item.
   enum lore_error_code_t error_code;
 } lore_storage_upload_item_complete_event_data_t;
 
 // Delivered on successful `lore_revision_tree_load`. Carries the registry
 // id the caller must pass to subsequent verbs against this revision tree.
 typedef struct lore_revision_tree_loaded_event_data_t {
+  // Registry id for the loaded revision tree.
   uint64_t handle_id;
 } lore_revision_tree_loaded_event_data_t;
 
+// Identifier of a node within a revision tree.
 typedef uint32_t lore_node_id_t;
 
 // Terminal per-call event for `resolve_path`. On success `error_code ==
 // None` and `node_id` is the resolved node; on failure `node_id` is
 // undefined and `error_code` is populated.
 typedef struct lore_revision_tree_resolve_path_complete_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The resolved node.
   lore_node_id_t node_id;
+  // The outcome of the call.
   enum lore_error_code_t error_code;
 } lore_revision_tree_resolve_path_complete_event_data_t;
 
@@ -1547,14 +2449,23 @@ typedef struct lore_revision_tree_resolve_path_complete_event_data_t {
 // the caller correlates entries by `id` and detects end-of-list via the
 // trailing `Complete` event.
 typedef struct lore_revision_tree_child_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The child node.
   lore_node_id_t node_id;
+  // The name of the child node.
   struct lore_string_t name;
+  // The parent node.
   lore_node_id_t parent_id;
+  // The kind of node.
   uint32_t kind;
+  // The file mode bits.
   uint16_t mode;
+  // The size of the node's content in bytes.
   uint64_t size;
+  // The address of the node's content.
   struct lore_address_t address;
+  // The outcome of the call.
   enum lore_error_code_t error_code;
 } lore_revision_tree_child_event_data_t;
 
@@ -1568,10 +2479,15 @@ typedef struct lore_revision_tree_child_event_data_t {
 // inline rather than wrapping in `Option<_>` keeps the struct
 // `#[repr(C)]`-stable for cbindgen.
 typedef struct lore_revision_tree_root_info_data_t {
+  // 1 when the inline fields carry root data; 0 otherwise.
   uint8_t is_root;
+  // The parent revision signatures.
   struct lore_hash_t parent[2];
+  // The time the revision was created.
   int64_t creation_timestamp;
+  // The identity of the revision's author.
   struct lore_string_t author_identity;
+  // The number of metadata keys on the revision.
   uint32_t metadata_key_count;
 } lore_revision_tree_root_info_data_t;
 
@@ -1580,15 +2496,25 @@ typedef struct lore_revision_tree_root_info_data_t {
 // `address.context` slot of the node's original add) and, when the
 // queried node is the root, the Metadata-fragment-derived `root_info`.
 typedef struct lore_revision_tree_node_info_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The queried node.
   lore_node_id_t node_id;
+  // The name of the node.
   struct lore_string_t name;
+  // The parent node.
   lore_node_id_t parent_id;
+  // The kind of node.
   uint32_t kind;
+  // The file mode bits.
   uint16_t mode;
+  // The size of the node's content in bytes.
   uint64_t size;
+  // The address of the node's content.
   struct lore_address_t address;
+  // The preserved file id of the node.
   struct lore_context_t file_id;
+  // Root metadata, valid only when the node is the revision root.
   struct lore_revision_tree_root_info_data_t root_info;
 } lore_revision_tree_node_info_event_data_t;
 
@@ -1596,44 +2522,60 @@ typedef struct lore_revision_tree_node_info_event_data_t {
 // reconstructed UTF-8 path from the root to the queried node; on failure
 // `path` is empty and `error_code` is populated.
 typedef struct lore_revision_tree_node_path_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The reconstructed path from the root to the queried node.
   struct lore_string_t path;
+  // The outcome of the call.
   enum lore_error_code_t error_code;
 } lore_revision_tree_node_path_event_data_t;
 
 // Terminal per-call event for `add`. On success `node_id` is the
 // newly-allocated child; on failure `node_id` is undefined.
 typedef struct lore_revision_tree_add_complete_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The newly-added node.
   lore_node_id_t node_id;
+  // The outcome of the call.
   enum lore_error_code_t error_code;
 } lore_revision_tree_add_complete_event_data_t;
 
 // Terminal per-call event for `delete`.
 typedef struct lore_revision_tree_delete_complete_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The outcome of the call.
   enum lore_error_code_t error_code;
 } lore_revision_tree_delete_complete_event_data_t;
 
 // Terminal per-call event for `modify`. `node_id` echoes the modified
 // node so the caller can chain operations without re-resolving.
 typedef struct lore_revision_tree_modify_complete_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The modified node.
   lore_node_id_t node_id;
+  // The outcome of the call.
   enum lore_error_code_t error_code;
 } lore_revision_tree_modify_complete_event_data_t;
 
 // Terminal per-call event for `move`. `node_id` echoes the moved node so
 // the caller observes that `file_id` is preserved across the reparent.
 typedef struct lore_revision_tree_move_complete_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The moved node.
   lore_node_id_t node_id;
+  // The outcome of the call.
   enum lore_error_code_t error_code;
 } lore_revision_tree_move_complete_event_data_t;
 
 // Terminal per-call event for `metadata_set`.
 typedef struct lore_revision_tree_metadata_set_complete_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The outcome of the call.
   enum lore_error_code_t error_code;
 } lore_revision_tree_metadata_set_complete_event_data_t;
 
@@ -1644,9 +2586,13 @@ typedef struct lore_revision_tree_metadata_set_complete_event_data_t {
 // No `Debug` derive: the embedded `LoreMetadata` enum does not implement
 // `Debug`. Use `serde_json::to_string` to render this for diagnostics.
 typedef struct lore_revision_tree_metadata_get_complete_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The metadata key.
   struct lore_string_t key;
+  // The metadata value.
   struct lore_metadata_t value;
+  // The outcome of the call.
   enum lore_error_code_t error_code;
 } lore_revision_tree_metadata_get_complete_event_data_t;
 
@@ -1656,231 +2602,452 @@ typedef struct lore_revision_tree_metadata_get_complete_event_data_t {
 // observed branch tip so the caller can reload without an extra
 // `branch::load_latest` round-trip.
 typedef struct lore_revision_tree_commit_complete_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The newly-committed revision.
   struct lore_hash_t revision_hash;
+  // The observed branch tip when the branch had advanced.
   struct lore_hash_t new_tip_hash;
+  // The outcome of the call.
   enum lore_error_code_t error_code;
 } lore_revision_tree_commit_complete_event_data_t;
 
 // Terminal per-call event for `close`.
 typedef struct lore_revision_tree_close_complete_event_data_t {
+  // Correlation id of the originating call.
   uint64_t id;
+  // The outcome of the call.
   enum lore_error_code_t error_code;
 } lore_revision_tree_close_complete_event_data_t;
 
+// An event delivered to a callback. Each variant names a kind of event and
+// carries the data for that event.
 enum lore_event_id_t {
+  // A progress update.
   LORE_EVENT_PROGRESS,
+  // An error.
   LORE_EVENT_ERROR,
+  // An operation completed.
   LORE_EVENT_COMPLETE,
+  // A metadata key and value.
   LORE_EVENT_METADATA,
+  // A log message.
   LORE_EVENT_LOG,
+  // The final event of a callback stream.
   LORE_EVENT_END,
+  // A maintenance message.
   LORE_EVENT_MAINTENANCE,
+  // An authentication URL for the user to visit.
   LORE_EVENT_AUTH_URL,
+  // Information about the authenticated user.
   LORE_EVENT_AUTH_USER_INFO,
+  // An authentication token for the user.
   LORE_EVENT_AUTH_USER_TOKEN,
+  // The resolved identity of the user.
   LORE_EVENT_AUTH_IDENTITY,
+  // A branch was created.
   LORE_EVENT_BRANCH_CREATE,
+  // More than one instance of a branch was found.
   LORE_EVENT_BRANCH_MULTIPLE_INSTANCE,
+  // A branch was archived.
   LORE_EVENT_BRANCH_ARCHIVE,
+  // The start of a branch listing.
   LORE_EVENT_BRANCH_LIST_BEGIN,
+  // One entry in a branch listing.
   LORE_EVENT_BRANCH_LIST_ENTRY,
+  // The end of a branch listing.
   LORE_EVENT_BRANCH_LIST_END,
+  // The start of a merge abort.
   LORE_EVENT_BRANCH_MERGE_ABORT_BEGIN,
+  // The end of a merge abort.
   LORE_EVENT_BRANCH_MERGE_ABORT_END,
+  // Information about a branch.
   LORE_EVENT_BRANCH_INFO,
+  // The start of a branch diff.
   LORE_EVENT_BRANCH_DIFF_BEGIN,
+  // The start of the changes in a branch diff.
   LORE_EVENT_BRANCH_DIFF_CHANGE_BEGIN,
+  // One change in a branch diff.
   LORE_EVENT_BRANCH_DIFF_CHANGE,
+  // The end of the changes in a branch diff.
   LORE_EVENT_BRANCH_DIFF_CHANGE_END,
+  // The start of the conflicts in a branch diff.
   LORE_EVENT_BRANCH_DIFF_CONFLICT_BEGIN,
+  // One conflict in a branch diff.
   LORE_EVENT_BRANCH_DIFF_CONFLICT,
+  // The end of the conflicts in a branch diff.
   LORE_EVENT_BRANCH_DIFF_CONFLICT_END,
+  // The end of a branch diff.
   LORE_EVENT_BRANCH_DIFF_END,
+  // One entry in a listing of latest branch revisions.
   LORE_EVENT_BRANCH_LATEST_LIST_ENTRY,
+  // A file in conflict during a merge.
   LORE_EVENT_BRANCH_MERGE_CONFLICT_FILE,
+  // A link was skipped during a merge.
   LORE_EVENT_BRANCH_MERGE_LINK_SKIPPED,
+  // A file conflict was marked unresolved during a merge.
   LORE_EVENT_BRANCH_MERGE_UNRESOLVE_FILE,
+  // A revision was marked unresolved during a merge.
   LORE_EVENT_BRANCH_MERGE_UNRESOLVE_REVISION,
+  // The start of merging changes into a file.
   LORE_EVENT_BRANCH_MERGE_INTO_FILE_BEGIN,
+  // Merging changes into a file.
   LORE_EVENT_BRANCH_MERGE_INTO_FILE,
+  // The end of merging changes into a file.
   LORE_EVENT_BRANCH_MERGE_INTO_FILE_END,
+  // The start of merging a fragment.
   LORE_EVENT_BRANCH_MERGE_INTO_FRAGMENT_BEGIN,
+  // Progress while merging a fragment.
   LORE_EVENT_BRANCH_MERGE_INTO_FRAGMENT_PROGRESS,
+  // The end of merging a fragment.
   LORE_EVENT_BRANCH_MERGE_INTO_FRAGMENT_END,
+  // A revision merged into the target.
   LORE_EVENT_BRANCH_MERGE_INTO_REVISION,
+  // The start of synchronizing data for a merge.
   LORE_EVENT_BRANCH_MERGE_INTO_SYNC_BEGIN,
+  // The end of synchronizing data for a merge.
   LORE_EVENT_BRANCH_MERGE_INTO_SYNC_END,
+  // A file conflict was resolved during a merge.
   LORE_EVENT_BRANCH_MERGE_RESOLVE_FILE,
+  // A revision was resolved during a merge.
   LORE_EVENT_BRANCH_MERGE_RESOLVE_REVISION,
+  // The start of a merge.
   LORE_EVENT_BRANCH_MERGE_START_BEGIN,
+  // The end of starting a merge.
   LORE_EVENT_BRANCH_MERGE_START_END,
+  // The start of a cherry-pick.
   LORE_EVENT_CHERRY_PICK_START_BEGIN,
+  // The end of starting a cherry-pick.
   LORE_EVENT_CHERRY_PICK_START_END,
+  // The start of a cherry-pick abort.
   LORE_EVENT_CHERRY_PICK_ABORT_BEGIN,
+  // The end of a cherry-pick abort.
   LORE_EVENT_CHERRY_PICK_ABORT_END,
+  // A file in conflict during a cherry-pick.
   LORE_EVENT_CHERRY_PICK_CONFLICT_FILE,
+  // A file conflict was marked unresolved during a cherry-pick.
   LORE_EVENT_CHERRY_PICK_UNRESOLVE_FILE,
+  // A revision was marked unresolved during a cherry-pick.
   LORE_EVENT_CHERRY_PICK_UNRESOLVE_REVISION,
+  // A file conflict was resolved during a cherry-pick.
   LORE_EVENT_CHERRY_PICK_RESOLVE_FILE,
+  // A revision was resolved during a cherry-pick.
   LORE_EVENT_CHERRY_PICK_RESOLVE_REVISION,
+  // The start of a revert.
   LORE_EVENT_REVERT_START_BEGIN,
+  // The end of starting a revert.
   LORE_EVENT_REVERT_START_END,
+  // The start of a revert abort.
   LORE_EVENT_REVERT_ABORT_BEGIN,
+  // The end of a revert abort.
   LORE_EVENT_REVERT_ABORT_END,
+  // A file conflict was resolved during a revert.
   LORE_EVENT_REVERT_RESOLVE_FILE,
+  // A revision was resolved during a revert.
   LORE_EVENT_REVERT_RESOLVE_REVISION,
+  // A file in conflict during a revert.
   LORE_EVENT_REVERT_CONFLICT_FILE,
+  // A file conflict was marked unresolved during a revert.
   LORE_EVENT_REVERT_UNRESOLVE_FILE,
+  // A revision was marked unresolved during a revert.
   LORE_EVENT_REVERT_UNRESOLVE_REVISION,
+  // A branch was protected.
   LORE_EVENT_BRANCH_PROTECT,
+  // A branch was pushed.
   LORE_EVENT_BRANCH_PUSH,
+  // The start of updating a revision during a push.
   LORE_EVENT_BRANCH_PUSH_REVISION_UPDATE_BEGIN,
+  // The end of updating a revision during a push.
   LORE_EVENT_BRANCH_PUSH_REVISION_UPDATE_END,
+  // The start of pushing a fragment.
   LORE_EVENT_BRANCH_PUSH_FRAGMENT_BEGIN,
+  // Progress while pushing a fragment.
   LORE_EVENT_BRANCH_PUSH_FRAGMENT_PROGRESS,
+  // The end of pushing a fragment.
   LORE_EVENT_BRANCH_PUSH_FRAGMENT_END,
+  // The start of creating a branch during a push.
   LORE_EVENT_BRANCH_PUSH_BRANCH_CREATE_BEGIN,
+  // The end of creating a branch during a push.
   LORE_EVENT_BRANCH_PUSH_BRANCH_CREATE_END,
+  // The start of pushing a revision.
   LORE_EVENT_BRANCH_PUSH_REVISION_PUSH_BEGIN,
+  // An update while pushing a revision.
   LORE_EVENT_BRANCH_PUSH_REVISION_PUSH_UPDATE,
+  // The end of pushing a revision.
   LORE_EVENT_BRANCH_PUSH_REVISION_PUSH_END,
+  // A branch was reset.
   LORE_EVENT_BRANCH_RESET,
+  // The start of switching the active branch.
   LORE_EVENT_BRANCH_SWITCH_BEGIN,
+  // The end of switching the active branch.
   LORE_EVENT_BRANCH_SWITCH_END,
+  // A branch was unprotected.
   LORE_EVENT_BRANCH_UNPROTECT,
+  // Information about a file.
   LORE_EVENT_FILE_INFO,
+  // A diff for a file.
   LORE_EVENT_FILE_DIFF,
+  // The hash of a file.
   LORE_EVENT_FILE_HASH,
+  // The history of a file.
   LORE_EVENT_FILE_HISTORY,
+  // A file was written.
   LORE_EVENT_FILE_WRITE,
+  // A file was obliterated.
   LORE_EVENT_FILE_OBLITERATE,
+  // A dump of a file.
   LORE_EVENT_FILE_DUMP,
+  // The start of adding file dependencies.
   LORE_EVENT_FILE_DEPENDENCY_ADD_BEGIN,
+  // One entry while adding file dependencies.
   LORE_EVENT_FILE_DEPENDENCY_ADD_ENTRY,
+  // The end of adding file dependencies.
   LORE_EVENT_FILE_DEPENDENCY_ADD_END,
+  // The start of removing file dependencies.
   LORE_EVENT_FILE_DEPENDENCY_REMOVE_BEGIN,
+  // One entry while removing file dependencies.
   LORE_EVENT_FILE_DEPENDENCY_REMOVE_ENTRY,
+  // The end of removing file dependencies.
   LORE_EVENT_FILE_DEPENDENCY_REMOVE_END,
+  // The start of listing file dependencies.
   LORE_EVENT_FILE_DEPENDENCY_LIST_BEGIN,
+  // A file in a dependency listing.
   LORE_EVENT_FILE_DEPENDENCY_LIST_FILE,
+  // One entry in a file dependency listing.
   LORE_EVENT_FILE_DEPENDENCY_LIST_ENTRY,
+  // The end of the entries for one file in a dependency listing.
   LORE_EVENT_FILE_DEPENDENCY_LIST_FILE_END,
+  // The end of listing file dependencies.
   LORE_EVENT_FILE_DEPENDENCY_LIST_END,
+  // The start of a file reset.
   LORE_EVENT_FILE_RESET_BEGIN,
+  // Progress during a file reset.
   LORE_EVENT_FILE_RESET_PROGRESS,
+  // The end of a file reset.
   LORE_EVENT_FILE_RESET_END,
+  // One file reset.
   LORE_EVENT_FILE_RESET_FILE,
+  // A path was excluded by a filter.
   LORE_EVENT_FILTER_EXCLUDE,
+  // The start of staging files.
   LORE_EVENT_FILE_STAGE_BEGIN,
+  // Progress while staging files.
   LORE_EVENT_FILE_STAGE_PROGRESS,
+  // The end of staging files.
   LORE_EVENT_FILE_STAGE_END,
+  // The revision involved in staging files.
   LORE_EVENT_FILE_STAGE_REVISION,
+  // One file staged.
   LORE_EVENT_FILE_STAGE_FILE,
+  // The start of unstaging files.
   LORE_EVENT_FILE_UNSTAGE_BEGIN,
+  // Progress while unstaging files.
   LORE_EVENT_FILE_UNSTAGE_PROGRESS,
+  // The end of unstaging files.
   LORE_EVENT_FILE_UNSTAGE_END,
+  // The revision involved in unstaging files.
   LORE_EVENT_FILE_UNSTAGE_REVISION,
+  // One file unstaged.
   LORE_EVENT_FILE_UNSTAGE_FILE,
+  // A fragment was written.
   LORE_EVENT_FRAGMENT_WRITE,
+  // A layer was added.
   LORE_EVENT_LAYER_ADD,
+  // One entry in a layer listing.
   LORE_EVENT_LAYER_ENTRY,
+  // A layer was removed.
   LORE_EVENT_LAYER_REMOVE,
+  // One staged entry in a layer listing.
   LORE_EVENT_LAYER_STAGED_ENTRY,
+  // A link was changed.
   LORE_EVENT_LINK_CHANGE,
+  // One entry in a link listing.
   LORE_EVENT_LINK_ENTRY,
+  // A file lock was acquired.
   LORE_EVENT_LOCK_FILE_ACQUIRE,
+  // A file lock acquisition was ignored.
   LORE_EVENT_LOCK_FILE_ACQUIRE_IGNORE,
+  // The start of a file lock status report.
   LORE_EVENT_LOCK_FILE_STATUS_BEGIN,
+  // One file lock status entry.
   LORE_EVENT_LOCK_FILE_STATUS,
+  // The start of a file lock query.
   LORE_EVENT_LOCK_FILE_QUERY_BEGIN,
+  // One file lock query result.
   LORE_EVENT_LOCK_FILE_QUERY,
+  // A file lock was released.
   LORE_EVENT_LOCK_FILE_RELEASE,
+  // A file lock to release was not found.
   LORE_EVENT_LOCK_FILE_RELEASE_NOT_FOUND,
+  // Metadata was cleared on a file.
   LORE_EVENT_METADATA_CLEAR_FILE,
+  // Metadata was cleared on a revision.
   LORE_EVENT_METADATA_CLEAR_REVISION,
+  // A path was ignored.
   LORE_EVENT_PATH_IGNORE,
+  // A repository was created.
   LORE_EVENT_REPOSITORY_CREATE,
+  // The start of a repository clone.
   LORE_EVENT_REPOSITORY_CLONE_BEGIN,
+  // Progress during a repository clone.
   LORE_EVENT_REPOSITORY_CLONE_PROGRESS,
+  // The end of a repository clone.
   LORE_EVENT_REPOSITORY_CLONE_END,
+  // The start of resolving dependencies.
   LORE_EVENT_DEPENDENCY_RESOLVE_BEGIN,
+  // One item while resolving dependencies.
   LORE_EVENT_DEPENDENCY_RESOLVE_ITEM,
+  // The end of resolving dependencies.
   LORE_EVENT_DEPENDENCY_RESOLVE_END,
+  // Data about a repository.
   LORE_EVENT_REPOSITORY_DATA,
+  // A repository configuration value.
   LORE_EVENT_REPOSITORY_CONFIG_GET,
+  // The start of a repository dump.
   LORE_EVENT_REPOSITORY_DUMP_BEGIN,
+  // The end of a repository dump.
   LORE_EVENT_REPOSITORY_DUMP_END,
+  // One entry in a repository listing.
   LORE_EVENT_REPOSITORY_LIST_ENTRY,
+  // An instance of a repository.
   LORE_EVENT_REPOSITORY_INSTANCE,
+  // The start of verifying repository state.
   LORE_EVENT_REPOSITORY_VERIFY_STATE_BEGIN,
+  // The end of verifying repository state.
   LORE_EVENT_REPOSITORY_VERIFY_STATE_END,
+  // A fragment verified in a repository.
   LORE_EVENT_REPOSITORY_VERIFY_FRAGMENT,
+  // A fragment match found while verifying a repository.
   LORE_EVENT_REPOSITORY_VERIFY_FRAGMENT_MATCH,
+  // A remote fragment checked while verifying a repository.
   LORE_EVENT_REPOSITORY_VERIFY_FRAGMENT_REMOTE,
+  // A dump of repository state.
   LORE_EVENT_REPOSITORY_STATE_DUMP,
+  // One node in a repository state dump.
   LORE_EVENT_REPOSITORY_STATE_DUMP_NODE,
+  // The revision involved in a repository status report.
   LORE_EVENT_REPOSITORY_STATUS_REVISION,
+  // One file in a repository status report.
   LORE_EVENT_REPOSITORY_STATUS_FILE,
+  // File counts in a repository status report.
   LORE_EVENT_REPOSITORY_STATUS_COUNT,
+  // A summary of a repository status report.
   LORE_EVENT_REPOSITORY_STATUS_SUMMARY,
+  // A result from querying the immutable store.
   LORE_EVENT_REPOSITORY_STORE_IMMUTABLE_QUERY,
+  // The start of committing a revision.
   LORE_EVENT_REVISION_COMMIT_BEGIN,
+  // Progress while committing a revision.
   LORE_EVENT_REVISION_COMMIT_PROGRESS,
+  // The end of committing a revision.
   LORE_EVENT_REVISION_COMMIT_END,
+  // The committed revision.
   LORE_EVENT_REVISION_COMMIT_REVISION,
+  // Information about a revision.
   LORE_EVENT_REVISION_INFO,
+  // A change in a revision's delta.
   LORE_EVENT_REVISION_INFO_DELTA,
+  // One file in a revision diff.
   LORE_EVENT_REVISION_DIFF_FILE,
+  // A revision found by a search.
   LORE_EVENT_REVISION_FIND,
+  // The history of a revision.
   LORE_EVENT_REVISION_HISTORY,
+  // One entry in a revision history.
   LORE_EVENT_REVISION_HISTORY_ENTRY,
+  // The start of restoring a file from a revision.
   LORE_EVENT_REVISION_RESTORE_FILE_BEGIN,
+  // A file restored from a revision.
   LORE_EVENT_REVISION_RESTORE_FILE,
+  // The end of restoring a file from a revision.
   LORE_EVENT_REVISION_RESTORE_FILE_END,
+  // The start of restoring a fragment.
   LORE_EVENT_REVISION_RESTORE_FRAGMENT_BEGIN,
+  // Progress while restoring a fragment.
   LORE_EVENT_REVISION_RESTORE_FRAGMENT_PROGRESS,
+  // The end of restoring a fragment.
   LORE_EVENT_REVISION_RESTORE_FRAGMENT_END,
+  // The revision being restored.
   LORE_EVENT_REVISION_RESTORE_REVISION,
+  // The start of synchronizing data for a restore.
   LORE_EVENT_REVISION_RESTORE_SYNC_BEGIN,
+  // The end of synchronizing data for a restore.
   LORE_EVENT_REVISION_RESTORE_SYNC_END,
+  // A revision was resolved.
   LORE_EVENT_REVISION_RESOLVE,
+  // The target revision of a sync.
   LORE_EVENT_REVISION_SYNC_TARGET,
+  // One file synced.
   LORE_EVENT_REVISION_SYNC_FILE,
+  // Progress during a revision sync.
   LORE_EVENT_REVISION_SYNC_PROGRESS,
+  // The revision involved in a sync.
   LORE_EVENT_REVISION_SYNC_REVISION,
+  // A bisect result.
   LORE_EVENT_REVISION_BISECT,
+  // A notification that a branch was created.
   LORE_EVENT_NOTIFICATION_BRANCH_CREATED,
+  // A notification that a branch was deleted.
   LORE_EVENT_NOTIFICATION_BRANCH_DELETED,
+  // A notification that a branch was pushed.
   LORE_EVENT_NOTIFICATION_BRANCH_PUSHED,
+  // A notification that a resource was locked.
   LORE_EVENT_NOTIFICATION_RESOURCE_LOCKED,
+  // A notification that a resource was unlocked.
   LORE_EVENT_NOTIFICATION_RESOURCE_UNLOCKED,
+  // A notification that a subscription was created.
   LORE_EVENT_NOTIFICATION_SUBSCRIBED,
+  // A notification that a subscription was removed.
   LORE_EVENT_NOTIFICATION_UNSUBSCRIBED,
+  // A shared store was created.
   LORE_EVENT_SHARED_STORE_CREATE,
+  // Information about a shared store.
   LORE_EVENT_SHARED_STORE_INFO,
+  // One staged entry in a link listing.
   LORE_EVENT_LINK_STAGED_ENTRY,
+  // A store was opened.
   LORE_EVENT_STORAGE_OPENED,
+  // A put item completed.
   LORE_EVENT_STORAGE_PUT_ITEM_COMPLETE,
+  // The header for a get item.
   LORE_EVENT_STORAGE_GET_HEADER,
+  // A data payload for a get item.
   LORE_EVENT_STORAGE_GET_DATA,
+  // A get item completed.
   LORE_EVENT_STORAGE_GET_ITEM_COMPLETE,
+  // A get-metadata item completed.
   LORE_EVENT_STORAGE_GET_METADATA_ITEM_COMPLETE,
+  // A copy item completed.
   LORE_EVENT_STORAGE_COPY_ITEM_COMPLETE,
+  // An obliterate item completed.
   LORE_EVENT_STORAGE_OBLITERATE_ITEM_COMPLETE,
+  // An upload item completed.
   LORE_EVENT_STORAGE_UPLOAD_ITEM_COMPLETE,
+  // A revision tree was loaded.
   LORE_EVENT_REVISION_TREE_LOADED,
+  // A resolve-path call completed.
   LORE_EVENT_REVISION_TREE_RESOLVE_PATH_COMPLETE,
+  // One child node in a revision tree.
   LORE_EVENT_REVISION_TREE_CHILD,
+  // Information about a revision tree node.
   LORE_EVENT_REVISION_TREE_NODE_INFO,
+  // The path of a revision tree node.
   LORE_EVENT_REVISION_TREE_NODE_PATH,
+  // An add call completed.
   LORE_EVENT_REVISION_TREE_ADD_COMPLETE,
+  // A delete call completed.
   LORE_EVENT_REVISION_TREE_DELETE_COMPLETE,
+  // A modify call completed.
   LORE_EVENT_REVISION_TREE_MODIFY_COMPLETE,
+  // A move call completed.
   LORE_EVENT_REVISION_TREE_MOVE_COMPLETE,
+  // A metadata-set call completed.
   LORE_EVENT_REVISION_TREE_METADATA_SET_COMPLETE,
+  // A metadata-get call completed.
   LORE_EVENT_REVISION_TREE_METADATA_GET_COMPLETE,
+  // A commit call completed.
   LORE_EVENT_REVISION_TREE_COMMIT_COMPLETE,
+  // A close call completed.
   LORE_EVENT_REVISION_TREE_CLOSE_COMPLETE,
 };
 typedef uint32_t lore_event_tag_t;
@@ -2104,6 +3271,7 @@ typedef struct lore_event_t {
   };
 } lore_event_t;
 
+// Common options shared by repository operations.
 typedef struct lore_global_args_t {
   // Repository path
   struct lore_string_t repository_path;
@@ -2160,8 +3328,27 @@ typedef struct lore_auth_user_info_args_t {
   struct lore_string_array_t user_ids;
 } lore_auth_user_info_args_t;
 
+// A callback function paired with a caller-supplied context value, used to
+// receive events.
+//
+// The callback does not run inside the lore_* call that configured it. It runs
+// on a thread the library manages, one of a pool of worker threads, not the
+// calling thread.
+//
+// The event pointer, and everything it points to, is valid only until the
+// callback returns. Copy any data you need to keep, and do not use the event
+// pointer after the callback returns.
+//
+// Events for a single call arrive one at a time. Two concurrent asynchronous
+// calls that share one configuration can run the callback at the same time, so
+// a shared callback must be safe to call from more than one thread at once. A
+// callback that blocks delays the library's other work and can stall other
+// in-flight calls. Do long or blocking work on your own thread and return from
+// the callback promptly.
 typedef struct lore_event_callback_config_t {
+  // Caller-supplied value passed back to the callback on each call.
   uint64_t user_context;
+  // Function invoked for each event, or none to receive no events.
   void (*func)(const struct lore_event_t *event, uint64_t user_context);
 } lore_event_callback_config_t;
 
@@ -2371,8 +3558,12 @@ typedef struct lore_branch_metadata_get_args_t {
   struct lore_string_t key;
 } lore_branch_metadata_get_args_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_metadata_type_array_t {
+  // Pointer to the first element.
   const enum lore_metadata_type_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_metadata_type_array_t;
 
@@ -2470,8 +3661,12 @@ typedef struct lore_file_metadata_list_args_t {
   struct lore_string_t revision;
 } lore_file_metadata_list_args_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_uint32_array_t {
+  // Pointer to the first element.
   const uint32_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_uint32_array_t;
 
@@ -3115,8 +4310,12 @@ typedef struct lore_storage_put_item_t {
   uint64_t fixed_size_chunk;
 } lore_storage_put_item_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_storage_put_item_array_t {
+  // Pointer to the first element.
   const struct lore_storage_put_item_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_storage_put_item_array_t;
 
@@ -3143,8 +4342,12 @@ typedef struct lore_storage_get_item_t {
   uint8_t local_cache;
 } lore_storage_get_item_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_storage_get_item_array_t {
+  // Pointer to the first element.
   const struct lore_storage_get_item_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_storage_get_item_array_t;
 
@@ -3178,8 +4381,12 @@ typedef struct lore_storage_get_metadata_item_t {
   struct lore_address_t address;
 } lore_storage_get_metadata_item_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_storage_get_metadata_item_array_t {
+  // Pointer to the first element.
   const struct lore_storage_get_metadata_item_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_storage_get_metadata_item_array_t;
 
@@ -3201,8 +4408,12 @@ typedef struct lore_storage_obliterate_item_t {
   struct lore_address_t address;
 } lore_storage_obliterate_item_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_storage_obliterate_item_array_t {
+  // Pointer to the first element.
   const struct lore_storage_obliterate_item_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_storage_obliterate_item_array_t;
 
@@ -3231,8 +4442,12 @@ typedef struct lore_storage_copy_item_t {
   struct lore_context_t target_context;
 } lore_storage_copy_item_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_storage_copy_item_array_t {
+  // Pointer to the first element.
   const struct lore_storage_copy_item_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_storage_copy_item_array_t;
 
@@ -3264,8 +4479,12 @@ typedef struct lore_storage_put_file_item_t {
   uint64_t fixed_size_chunk;
 } lore_storage_put_file_item_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_storage_put_file_item_array_t {
+  // Pointer to the first element.
   const struct lore_storage_put_file_item_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_storage_put_file_item_array_t;
 
@@ -3293,8 +4512,12 @@ typedef struct lore_storage_get_file_item_t {
   uint8_t local_cache;
 } lore_storage_get_file_item_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_storage_get_file_item_array_t {
+  // Pointer to the first element.
   const struct lore_storage_get_file_item_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_storage_get_file_item_array_t;
 
@@ -3316,8 +4539,12 @@ typedef struct lore_storage_upload_item_t {
   struct lore_address_t address;
 } lore_storage_upload_item_t;
 
+// A contiguous array of elements described by a pointer and a count.
+// Holds zero or more values of the element type laid out one after another.
 typedef struct lore_storage_upload_item_array_t {
+  // Pointer to the first element.
   const struct lore_storage_upload_item_t *ptr;
+  // Number of elements in the array.
   uintptr_t count;
 } lore_storage_upload_item_array_t;
 
@@ -3423,8 +4650,8 @@ typedef struct lore_repository_config_get_args_t {
 
 // Opaque handle to an open memory-based revision tree instance.
 //
-// Look up the corresponding [`RevisionTreeInternal`] via [`lookup`] before
-// dispatch; never cast directly to or from raw pointers.
+// Treat this as an opaque value; never cast it directly to or from raw
+// pointers.
 typedef struct lore_revision_tree_t {
   // Registry key; `0` is the reserved invalid/unregistered sentinel (zero-init = null handle)
   uint64_t handle_id;
@@ -3591,6 +4818,7 @@ typedef struct lore_revision_tree_commit_args_t {
   struct lore_revision_tree_commit_options_t options;
 } lore_revision_tree_commit_args_t;
 
+// Return the tag identifying the type of an event.
 uint32_t lore_event_type(const struct lore_event_t *event);
 
 // Resolve user IDs to display names using the remote authentication service.
@@ -8878,8 +10106,16 @@ void lore_notification_unsubscribe_async(const struct lore_global_args_t *global
                                          const struct lore_notification_unsubscribe_args_t *args,
                                          struct lore_event_callback_config_t callback);
 
+// Apply the given logging configuration.
+//
+// Returns 0 when the configuration was applied and a non-zero value when it
+// was not.
 int32_t lore_log_configure(const struct lore_log_config_t *config);
 
+// Shut the library down, stopping its worker threads and releasing the
+// resources it holds. Call this once, when no further calls will be made.
+//
+// Returns 0 on success and a non-zero value on failure.
 int32_t lore_shutdown(void);
 
 // Limits the total number of threads Lore sizes its pools for.
@@ -8897,67 +10133,96 @@ int32_t lore_shutdown(void);
 // `1` if it had already been set (or the runtime was already running).
 int32_t lore_set_thread_limit(uintptr_t count);
 
+// Install the memory allocator the library uses for its own allocations.
+// Provide functions for allocation, zeroed allocation, reallocation and
+// freeing. Call this before the library makes its first allocation; once it
+// has allocated, the allocator can no longer be changed.
+//
+// Returns 0 when the allocator was installed and a non-zero value when it was
+// too late to install one, in which case the call does nothing.
 int32_t lore_set_allocator(lore_alloc_fn alloc,
                            lore_alloc_zeroed_fn alloc_zeroed,
                            lore_realloc_fn realloc,
                            lore_dealloc_fn dealloc);
 
+// Return the library version as a NUL-terminated string. The string is owned
+// by the library and must not be freed by the caller.
 const char *lore_version(void);
 
+// Return the path of the directory where the library keeps its per-user data
+// as a NUL-terminated string. The string is owned by the library and must not
+// be freed by the caller.
 const char *lore_user_directory(void);
 
+// Retrieve repository metadata. Reads a single key, or all entries when no
+// key is given.
 int32_t lore_repository_metadata_get(const struct lore_global_args_t *globals,
                                      const struct lore_repository_metadata_get_args_t *args,
                                      struct lore_event_callback_config_t callback);
 
+// Asynchronous version of `lore_repository_metadata_get`.
 void lore_repository_metadata_get_async(const struct lore_global_args_t *globals,
                                         const struct lore_repository_metadata_get_args_t *args,
                                         struct lore_event_callback_config_t callback);
 
+// Set repository metadata key-value pairs.
 int32_t lore_repository_metadata_set(const struct lore_global_args_t *globals,
                                      const struct lore_repository_metadata_set_args_t *args,
                                      struct lore_event_callback_config_t callback);
 
+// Asynchronous version of `lore_repository_metadata_set`.
 void lore_repository_metadata_set_async(const struct lore_global_args_t *globals,
                                         const struct lore_repository_metadata_set_args_t *args,
                                         struct lore_event_callback_config_t callback);
 
+// Clear repository metadata keys. Clears all user-defined keys when none are
+// given.
 int32_t lore_repository_metadata_clear(const struct lore_global_args_t *globals,
                                        const struct lore_repository_metadata_clear_args_t *args,
                                        struct lore_event_callback_config_t callback);
 
+// Asynchronous version of `lore_repository_metadata_clear`.
 void lore_repository_metadata_clear_async(const struct lore_global_args_t *globals,
                                           const struct lore_repository_metadata_clear_args_t *args,
                                           struct lore_event_callback_config_t callback);
 
+// List the tracked instances of the repository.
 int32_t lore_repository_instance_list(const struct lore_global_args_t *globals,
                                       const struct lore_repository_instance_list_args_t *args,
                                       struct lore_event_callback_config_t callback);
 
+// Asynchronous version of `lore_repository_instance_list`.
 void lore_repository_instance_list_async(const struct lore_global_args_t *globals,
                                          const struct lore_repository_instance_list_args_t *args,
                                          struct lore_event_callback_config_t callback);
 
+// Remove stale instances of the repository that are no longer present.
 int32_t lore_repository_instance_prune(const struct lore_global_args_t *globals,
                                        const struct lore_repository_instance_prune_args_t *args,
                                        struct lore_event_callback_config_t callback);
 
+// Asynchronous version of `lore_repository_instance_prune`.
 void lore_repository_instance_prune_async(const struct lore_global_args_t *globals,
                                           const struct lore_repository_instance_prune_args_t *args,
                                           struct lore_event_callback_config_t callback);
 
+// Update the recorded path of the current repository instance to its present
+// location.
 int32_t lore_repository_update_path(const struct lore_global_args_t *globals,
                                     const struct lore_repository_update_path_args_t *args,
                                     struct lore_event_callback_config_t callback);
 
+// Asynchronous version of `lore_repository_update_path`.
 void lore_repository_update_path_async(const struct lore_global_args_t *globals,
                                        const struct lore_repository_update_path_args_t *args,
                                        struct lore_event_callback_config_t callback);
 
+// Read a configuration value of the current repository by key.
 int32_t lore_repository_config_get(const struct lore_global_args_t *globals,
                                    const struct lore_repository_config_get_args_t *args,
                                    struct lore_event_callback_config_t callback);
 
+// Asynchronous version of `lore_repository_config_get`.
 void lore_repository_config_get_async(const struct lore_global_args_t *globals,
                                       const struct lore_repository_config_get_args_t *args,
                                       struct lore_event_callback_config_t callback);

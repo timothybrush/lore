@@ -210,14 +210,20 @@ impl LinkTracker {
     }
 }
 
+/// Data for an event reporting a change to a link.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLinkChangeEventData {
+    /// Path of the link within the parent repository.
     pub link_path: LoreString,
+    /// Identifier of the repository the link points to.
     pub link_repository: RepositoryId,
+    /// Identifier of the branch the link is pinned to.
     pub branch: BranchId,
+    /// Hash of the revision the link is pinned to.
     pub revision: Hash,
+    /// Kind of change applied to the link.
     pub action: LoreFileAction,
 }
 
@@ -243,18 +249,28 @@ impl LoreLinkChangeEventData {
     }
 }
 
+/// Data for an event describing a single link in a repository.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLinkEntryEventData {
+    /// Identifier of the repository the link points to.
     pub link: RepositoryId,
+    /// Identifier of the link node in the parent repository.
     pub link_node: u32,
+    /// Path of the link within the parent repository.
     pub link_path: LoreString,
+    /// Identifier of the source node in the linked repository.
     pub source_node: u32,
+    /// Path of the source within the linked repository.
     pub source_path: LoreString,
+    /// Identifier of the branch the link is pinned to.
     pub branch: BranchId,
+    /// Name of the branch the link is pinned to.
     pub branch_name: LoreString,
+    /// Hash of the revision the link is pinned to.
     pub revision: Hash,
+    /// Link flags.
     pub flags: u32,
 }
 

@@ -33,12 +33,16 @@ impl EventError for HashError {
     }
 }
 
+/// Data for the event reporting the hash of a single file.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileHashEventData {
+    /// Path of the file.
     pub path: LoreString,
+    /// Size of the file in bytes.
     pub size: u64,
+    /// Content hash of the file.
     pub hash: Hash,
 }
 

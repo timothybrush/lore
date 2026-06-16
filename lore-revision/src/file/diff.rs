@@ -102,12 +102,16 @@ impl EventError for DiffError {
     }
 }
 
+/// Data for the event carrying the diff of a single file.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDiffEventData {
+    /// Path of the file.
     pub path: LoreString,
+    /// Unified-diff text describing the change.
     pub patch: LoreString,
+    /// Action applied to the file.
     pub action: LoreFileAction,
 }
 

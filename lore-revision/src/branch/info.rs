@@ -82,20 +82,32 @@ impl EventError for InfoError {
     }
 }
 
+/// Event data reported with information about a single branch.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchInfoEventData {
+    /// Branch identifier.
     pub id: BranchId,
+    /// Branch name.
     pub name: LoreString,
+    /// Branch category.
     pub category: LoreString,
+    /// Latest revision known locally for the branch.
     pub latest: Hash,
+    /// Latest revision known on the remote for the branch.
     pub latest_remote: Hash,
+    /// Identifier of the parent branch.
     pub parent: BranchId,
+    /// Revision on the parent branch where this branch was created.
     pub branch_point: Hash,
+    /// Identifier of the user who created the branch.
     pub creator: LoreString,
+    /// Creation time of the branch as a timestamp.
     pub created: u64,
+    /// Stack of branch points this branch was created from.
     pub stack: LoreArray<LoreBranchPoint>,
+    /// Set when the branch has been archived.
     #[serde(with = "u8_as_bool")]
     pub archived: u8,
 }

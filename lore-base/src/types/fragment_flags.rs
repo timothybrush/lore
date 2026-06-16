@@ -3,6 +3,7 @@
 use bitflags::bitflags;
 
 bitflags! {
+    /// Bit flags describing how a fragment payload is stored and handled.
     #[repr(transparent)]
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct FragmentFlags: u32 {

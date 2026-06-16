@@ -49,43 +49,58 @@ use crate::state::State;
 use crate::util;
 use crate::util::path::RelativePath;
 
+/// Data for the event emitted when a reset operation begins.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileResetBeginEventData {
+    /// Number of paths requested for reset.
     pub path_count: usize,
 }
 
+/// Running counts of items processed during a reset operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileResetCountData {
+    /// Number of directories that were reset.
     pub directory_reset_count: u64,
+    /// Number of directories that were deleted.
     pub directory_delete_count: u64,
+    /// Number of files that were reset.
     pub file_reset_count: u64,
+    /// Number of files that were deleted.
     pub file_delete_count: u64,
 }
 
+/// Data for the progress event emitted periodically during a reset operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileResetProgressEventData {
+    /// Current counts of items processed.
     pub count: LoreFileResetCountData,
 }
 
+/// Data for the event emitted when a reset operation completes.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileResetEndEventData {
+    /// Final counts of items processed.
     pub count: LoreFileResetCountData,
 }
 
+/// Data for the event emitted for each file affected by a reset operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileResetFileEventData {
+    /// Path of the file.
     pub path: LoreString,
+    /// Action applied to the file.
     pub action: LoreFileAction,
+    /// Previous path of the file, when it was moved.
     pub from_path: LoreString,
 }
 

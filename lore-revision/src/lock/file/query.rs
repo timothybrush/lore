@@ -53,20 +53,27 @@ impl EventError for QueryError {
     }
 }
 
+/// Data for an event that marks the start of a lock query result.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLockFileQueryBeginEventData {
+    /// Number of query entries that follow.
     pub count: u64,
 }
 
+/// Data for an event reporting a single lock matched by a query.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLockFileQueryEventData {
+    /// Identifier of the branch the lock belongs to.
     pub branch: BranchId,
+    /// Path the lock applies to.
     pub path: LoreString,
+    /// Identifier of the user that holds the lock.
     pub owner: LoreString,
+    /// Timestamp recorded when the lock was acquired.
     pub locked_at: u64,
 }
 

@@ -167,6 +167,7 @@ pub struct Context {
         serialize_with = "serialize_hex",
         deserialize_with = "deserialize_context"
     )]
+    /// The raw 16 bytes of the identifier.
     data: [u8; 16],
 }
 
@@ -196,9 +197,14 @@ pub struct Partition {
         serialize_with = "serialize_hex",
         deserialize_with = "deserialize_context"
     )]
+    /// The raw 16 bytes of the identifier.
     data: [u8; 16],
 }
 
+/// Opaque 256-bit content hash.
+///
+/// Identifies a piece of content by the digest of its bytes. Two pieces of
+/// identical content share the same hash.
 #[repr(C)]
 #[derive(
     Copy,
@@ -220,18 +226,29 @@ pub struct Hash {
         serialize_with = "serialize_hex",
         deserialize_with = "deserialize_hash"
     )]
+    /// The raw 32 bytes of the hash digest.
     data: [u8; 32],
 }
 
 pub const HASH_STRING_LENGTH: usize = std::mem::size_of::<Hash>() * 2;
 
+/// Full address of a piece of content.
+///
+/// Pairs a content hash with a context identifier, so the same content can be
+/// addressed under different contexts.
 #[repr(C)]
 #[derive(Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, IntoBytes, FromBytes, Immutable)]
 pub struct Address {
+    /// Content hash.
     pub hash: Hash,
+    /// Context identifier paired with the hash.
     pub context: Context,
 }
 
+/// Header describing a stored piece of content.
+///
+/// Records how the payload is stored and how large it is, both as held in
+/// storage and once fully reassembled.
 #[repr(C)]
 #[derive(
     Copy,
@@ -256,6 +273,10 @@ pub struct Fragment {
     pub size_content: u64,
 }
 
+/// Reference to one fragment within larger reassembled content.
+///
+/// Names the fragment by its payload hash and records where its bytes sit in
+/// the full content.
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq, IntoBytes, Immutable, FromBytes)]
 pub struct FragmentReference {

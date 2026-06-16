@@ -148,15 +148,23 @@ pub struct Metadata {
     buffer: BytesMut,
 }
 
+/// Type tag for a metadata value.
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum MetadataType {
+    /// Value is an address.
     Address = 1,
+    /// Value is a boolean.
     Boolean = 2,
+    /// Value is a context.
     Context = 3,
+    /// Value is a hash.
     Hash = 4,
+    /// Value is an unsigned integer.
     Numeric = 5,
+    /// Value is text.
     String = 6,
+    /// Value is raw binary data.
     Binary = 255,
 }
 
@@ -174,9 +182,12 @@ impl MetadataType {
     }
 }
 
+/// Header at the start of a serialized metadata blob.
 #[repr(C)]
 pub struct MetadataHeader {
+    /// Identifier marking the buffer as metadata.
     pub magic: u32,
+    /// Format version of the metadata layout.
     pub version: u32,
 }
 

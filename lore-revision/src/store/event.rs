@@ -28,6 +28,7 @@ use crate::event::LoreErrorCode;
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreStorageOpenedEventData {
+    /// Handle id for the opened store.
     pub handle_id: u64,
 }
 
@@ -38,8 +39,11 @@ pub struct LoreStorageOpenedEventData {
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreStoragePutItemCompleteEventData {
+    /// Correlation id of the item.
     pub id: u64,
+    /// The computed content address of the stored item.
     pub address: Address,
+    /// The outcome for the item.
     pub error_code: LoreErrorCode,
 }
 
@@ -49,8 +53,11 @@ pub struct LoreStoragePutItemCompleteEventData {
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreStorageGetHeaderEventData {
+    /// Correlation id of the item.
     pub id: u64,
+    /// The content address of the item.
     pub address: Address,
+    /// The total reassembled content size in bytes.
     pub size_content: u64,
 }
 
@@ -60,9 +67,13 @@ pub struct LoreStorageGetHeaderEventData {
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreStorageGetDataEventData {
+    /// Correlation id of the item.
     pub id: u64,
+    /// The content address of the item.
     pub address: Address,
+    /// The byte offset of this payload within the item's content.
     pub offset: u64,
+    /// The payload bytes for this part of the item.
     pub bytes: LoreBytes,
 }
 
@@ -73,8 +84,11 @@ pub struct LoreStorageGetDataEventData {
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreStorageGetItemCompleteEventData {
+    /// Correlation id of the item.
     pub id: u64,
+    /// The content address of the item.
     pub address: Address,
+    /// The outcome for the item.
     pub error_code: LoreErrorCode,
 }
 
@@ -87,11 +101,17 @@ pub struct LoreStorageGetItemCompleteEventData {
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreStorageCopyItemCompleteEventData {
+    /// Correlation id of the item.
     pub id: u64,
+    /// The partition the item was copied from.
     pub source_partition: Partition,
+    /// The partition the item was copied to.
     pub target_partition: Partition,
+    /// The address of the item in the source.
     pub source_address: Address,
+    /// The context of the item in the target.
     pub target_context: Context,
+    /// The outcome for the item.
     pub error_code: LoreErrorCode,
 }
 
@@ -105,12 +125,19 @@ pub struct LoreStorageCopyItemCompleteEventData {
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreStorageObliterateItemCompleteEventData {
+    /// Correlation id of the item.
     pub id: u64,
+    /// The content address of the item.
     pub address: Address,
+    /// 1 when the local side completed without error.
     pub local_success: u8,
+    /// 1 when the remote side completed without error.
     pub remote_success: u8,
+    /// 1 when the local side was skipped.
     pub local_skipped: u8,
+    /// 1 when the remote side was skipped.
     pub remote_skipped: u8,
+    /// The outcome for the item.
     pub error_code: LoreErrorCode,
 }
 
@@ -123,9 +150,13 @@ pub struct LoreStorageObliterateItemCompleteEventData {
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreStorageGetMetadataItemCompleteEventData {
+    /// Correlation id of the item.
     pub id: u64,
+    /// The content address of the item.
     pub address: Address,
+    /// The metadata fragment for the item.
     pub fragment: Fragment,
+    /// The outcome for the item.
     pub error_code: LoreErrorCode,
 }
 
@@ -135,8 +166,12 @@ pub struct LoreStorageGetMetadataItemCompleteEventData {
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreStorageUploadItemCompleteEventData {
+    /// Correlation id of the item.
     pub id: u64,
+    /// The content address of the item.
     pub address: Address,
+    /// 1 when the item was already durable and no upload was performed.
     pub already_durable: u8,
+    /// The outcome for the item.
     pub error_code: LoreErrorCode,
 }

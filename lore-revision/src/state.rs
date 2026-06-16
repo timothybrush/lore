@@ -80,27 +80,41 @@ use crate::util;
 use crate::util::path::RelativePath;
 use crate::util::path::RelativePathBuf;
 
+/// Data for an event summarizing a dumped repository state.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryStateDumpEventData {
+    /// Sequence number of the revision.
     pub revision_number: u64,
+    /// Hash of the revision.
     pub revision: Hash,
+    /// Hash of the state's node tree.
     pub tree_hash: Hash,
+    /// Size of the node tree in bytes.
     pub tree_size: u64,
 }
 
+/// Data for an event describing a single node in a dumped repository state.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryStateDumpNodeEventData {
+    /// Name of the node.
     pub name: LoreString,
+    /// Identifier of the node.
     pub id: u32,
+    /// Identifier of the parent node.
     pub parent: u32,
+    /// Identifier of the next sibling node.
     pub sibling: u32,
+    /// File mode of the node.
     pub mode: u16,
+    /// Size of the node's content in bytes.
     pub size: u64,
+    /// Node flags.
     pub flags: u16,
+    /// Type-specific detail for the node.
     pub type_data: LoreString,
 }
 

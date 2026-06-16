@@ -15,10 +15,13 @@ use crate::repository::RepositoryContext;
 
 const DEFAULT_LATEST_LIST_LIMIT: u32 = 30;
 
+/// Event data reported for each entry in a branch latest-revision history listing.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct LoreBranchLatestListEntryEventData {
+    /// Branch identifier.
     pub branch: BranchId,
+    /// Revision recorded in the history entry.
     pub revision: Hash,
 }
 

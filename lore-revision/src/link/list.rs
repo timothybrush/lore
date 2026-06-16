@@ -87,12 +87,16 @@ pub async fn list(repository: Arc<RepositoryContext>) -> Result<(), LinkError> {
     Ok(())
 }
 
+/// Data for an event describing a link that has staged changes.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLinkStagedEntryEventData {
+    /// Path of the link within the parent repository.
     pub path: LoreString,
+    /// Identifier of the repository the link points to.
     pub repository: RepositoryId,
+    /// Number of staged files inside the link.
     pub staged_file_count: u64,
 }
 

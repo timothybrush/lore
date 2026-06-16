@@ -11,11 +11,14 @@ use crate::lore::RepositoryId;
 use crate::lore_debug;
 use crate::protocol;
 
+/// One entry in a repository listing.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryListEntryEventData {
+    /// Repository identifier.
     pub id: RepositoryId,
+    /// Repository name.
     pub name: LoreString,
 }
 

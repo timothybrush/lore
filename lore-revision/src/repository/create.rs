@@ -28,12 +28,16 @@ use crate::protocol;
 use crate::repository;
 use crate::util;
 
+/// Data for the event emitted when a repository is created.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryCreateEventData {
+    /// Identifier of the created repository.
     pub id: RepositoryId,
+    /// Name of the created repository.
     pub name: LoreString,
+    /// Local path of the created repository.
     pub path: LoreString,
 }
 

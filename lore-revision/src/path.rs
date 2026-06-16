@@ -6,10 +6,12 @@ use serde::Serialize;
 use crate::event::LoreEvent;
 use crate::interface::LoreString;
 
+/// Event data naming a path that was ignored or could not be resolved.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LorePathIgnoreEventData {
+    /// The ignored path
     pub path: LoreString,
 }
 

@@ -27,13 +27,19 @@ use crate::state;
 use crate::state::State;
 use crate::util::serde::u8_as_bool;
 
+/// Summary information about a single revision.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionInfoEventData {
+    /// Repository identifier the revision belongs to.
     pub repository: RepositoryId,
+    /// Revision hash signature.
     pub revision: Hash,
+    /// Revision number.
     pub revision_number: u64,
+    /// Parent revision hashes; the first is the direct parent and the second
+    /// is the other parent of a merge, or zero when there is none.
     pub parent: [Hash; 2],
 }
 
@@ -48,17 +54,24 @@ impl LoreRevisionInfoEventData {
     }
 }
 
+/// Per-file change information between a revision and its parent.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionInfoDeltaEventData {
+    /// Path of the file relative to the repository root.
     pub path: LoreString,
+    /// Size of the file in bytes.
     pub size: u64,
+    /// Action applied to the file.
     pub action: LoreFileAction,
+    /// Flag indicating the file content was modified.
     #[serde(with = "u8_as_bool")]
     pub flag_modify: u8,
+    /// Flag indicating the change came from a merge.
     #[serde(with = "u8_as_bool")]
     pub flag_merged: u8,
+    /// Flag indicating the entry is a file rather than a directory.
     #[serde(with = "u8_as_bool")]
     pub flag_file: u8,
 }

@@ -250,11 +250,13 @@ pub trait EventError: std::fmt::Display {
     }
 }
 
+/// Data for a generic progress event.
 // TODO(vri): Implement with a union to enable command-specific progress events
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreProgressEventData {
+    /// Placeholder field; carries no meaningful value.
     pub _unused: u32,
 }
 
@@ -265,7 +267,9 @@ pub struct LoreProgressEventData {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct LoreBytes {
+    /// Pointer to the start of the byte slice.
     pub ptr: *const core::ffi::c_void,
+    /// Number of bytes in the slice.
     pub len: usize,
 }
 
@@ -322,10 +326,10 @@ impl<'de> serde::Deserialize<'de> for LoreBytes {
 /// Small discriminator enum for per-item terminal events in the
 /// content-addressed storage API.
 ///
-/// Narrower than [`crate::interface::LoreError`] — events emitted per
+/// Narrower than the general library error code — events emitted per
 /// put/get/copy/etc. item embed this code so a caller can branch on the
 /// common cases cheaply without parsing the companion `LORE_EVENT_ERROR`
-/// detail. Variants overlap with [`crate::interface::LoreError`] where they
+/// detail. Variants overlap with the general library error code where they
 /// share a meaning.
 ///
 /// cbindgen:prefix-with-name
@@ -333,18 +337,26 @@ impl<'de> serde::Deserialize<'de> for LoreBytes {
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum LoreErrorCode {
+    /// No error; the operation succeeded.
     None = 0,
+    /// The arguments supplied to the operation were invalid.
     InvalidArguments = 1,
+    /// A content-addressable object could not be found in any store.
     AddressNotFound = 2,
+    /// An internal error occurred.
     Internal = 3,
+    /// The backing store is overloaded; the caller should retry later.
     SlowDown = 4,
 }
 
+/// Data for an error event.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreErrorEventData {
+    /// The error code, matching one of the FFI error codes.
     pub error_type: u32,
+    /// The underlying error message.
     pub error_inner: LoreString,
 }
 
@@ -357,18 +369,23 @@ impl LoreErrorEventData {
     }
 }
 
+/// Data for a completion event, marking the end of an operation.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreCompleteEventData {
+    /// The completion status code of the operation.
     pub status: i32,
 }
 
+/// Data for a metadata event, carrying a single key and value.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreMetadataEventData {
+    /// The metadata key.
     pub key: LoreString,
+    /// The metadata value.
     pub value: LoreMetadata,
 }
 
@@ -391,253 +408,478 @@ impl LoreMetadataEventData {
     }
 }
 
+/// Data for a log event.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLogEventData {
+    /// The severity level of the log message.
     pub level: lore_base::log::LoreLogLevel,
+    /// The category of the log message.
     pub category: u32,
+    /// The time the message was produced.
     pub timestamp: u64,
+    /// The source location that produced the message.
     pub location: LoreString,
+    /// The log message text.
     pub message: LoreString,
 }
 
+/// Data for an end event, marking the final event of a callback stream.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreEndEventData {
+    /// Placeholder field; carries no meaningful value.
     pub unused: u32,
 }
 
+/// Data for a maintenance event, carrying an informational message.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreMaintenanceEventData {
+    /// The maintenance message text.
     pub message: LoreString,
 }
 
 /// cbindgen:prefix-with-name
 /// cbindgen:rename-all=ScreamingSnakeCase
+/// An event delivered to a callback. Each variant names a kind of event and
+/// carries the data for that event.
 #[repr(C, u32)]
 #[derive(Clone, PartialEq, Serialize, Deserialize, VariantTypeSize)]
 #[serde(tag = "tagName", content = "data", rename_all = "camelCase")]
 pub enum LoreEvent {
     // Standard events
+    /// A progress update.
     Progress(LoreProgressEventData),
+    /// An error.
     Error(LoreErrorEventData),
+    /// An operation completed.
     Complete(LoreCompleteEventData),
+    /// A metadata key and value.
     Metadata(LoreMetadataEventData),
+    /// A log message.
     Log(LoreLogEventData),
+    /// The final event of a callback stream.
     End(LoreEndEventData),
+    /// A maintenance message.
     Maintenance(LoreMaintenanceEventData),
     // ... Specialized events
+    /// An authentication URL for the user to visit.
     AuthUrl(LoreAuthUrlEventData),
+    /// Information about the authenticated user.
     AuthUserInfo(LoreAuthUserInfoEventData),
+    /// An authentication token for the user.
     AuthUserToken(LoreAuthUserTokenEventData),
+    /// The resolved identity of the user.
     AuthIdentity(LoreAuthIdentityEventData),
+    /// A branch was created.
     BranchCreate(LoreBranchCreateEventData),
+    /// More than one instance of a branch was found.
     BranchMultipleInstance(LoreBranchMultipleInstanceEventData),
+    /// A branch was archived.
     BranchArchive(LoreBranchArchiveEventData),
+    /// The start of a branch listing.
     BranchListBegin(LoreBranchListBeginEventData),
+    /// One entry in a branch listing.
     BranchListEntry(LoreBranchListEntryEventData),
+    /// The end of a branch listing.
     BranchListEnd(LoreBranchListEndEventData),
+    /// The start of a merge abort.
     BranchMergeAbortBegin(LoreBranchMergeAbortBeginEventData),
+    /// The end of a merge abort.
     BranchMergeAbortEnd(LoreBranchMergeAbortEndEventData),
+    /// Information about a branch.
     BranchInfo(LoreBranchInfoEventData),
+    /// The start of a branch diff.
     BranchDiffBegin(LoreBranchDiffBeginEventData),
+    /// The start of the changes in a branch diff.
     BranchDiffChangeBegin(LoreBranchDiffChangeBeginEventData),
+    /// One change in a branch diff.
     BranchDiffChange(LoreBranchDiffChangeEventData),
+    /// The end of the changes in a branch diff.
     BranchDiffChangeEnd(LoreBranchDiffChangeEndEventData),
+    /// The start of the conflicts in a branch diff.
     BranchDiffConflictBegin(LoreBranchDiffConflictBeginEventData),
+    /// One conflict in a branch diff.
     BranchDiffConflict(LoreBranchDiffConflictEventData),
+    /// The end of the conflicts in a branch diff.
     BranchDiffConflictEnd(LoreBranchDiffConflictEndEventData),
+    /// The end of a branch diff.
     BranchDiffEnd(LoreBranchDiffEndEventData),
+    /// One entry in a listing of latest branch revisions.
     BranchLatestListEntry(LoreBranchLatestListEntryEventData),
+    /// A file in conflict during a merge.
     BranchMergeConflictFile(LoreBranchMergeConflictFileEventData),
+    /// A link was skipped during a merge.
     BranchMergeLinkSkipped(crate::branch::merge::LoreBranchMergeLinkSkippedEventData),
+    /// A file conflict was marked unresolved during a merge.
     BranchMergeUnresolveFile(LoreBranchMergeUnresolveFileEventData),
+    /// A revision was marked unresolved during a merge.
     BranchMergeUnresolveRevision(LoreBranchMergeUnresolveRevisionEventData),
+    /// The start of merging changes into a file.
     BranchMergeIntoFileBegin(LoreBranchMergeIntoFileBeginEventData),
+    /// Merging changes into a file.
     BranchMergeIntoFile(LoreBranchMergeIntoFileEventData),
+    /// The end of merging changes into a file.
     BranchMergeIntoFileEnd(LoreBranchMergeIntoFileEndEventData),
+    /// The start of merging a fragment.
     BranchMergeIntoFragmentBegin(LoreBranchMergeIntoFragmentBeginEventData),
+    /// Progress while merging a fragment.
     BranchMergeIntoFragmentProgress(LoreBranchMergeIntoFragmentProgressEventData),
+    /// The end of merging a fragment.
     BranchMergeIntoFragmentEnd(LoreBranchMergeIntoFragmentEndEventData),
+    /// A revision merged into the target.
     BranchMergeIntoRevision(LoreBranchMergeIntoRevisionEventData),
+    /// The start of synchronizing data for a merge.
     BranchMergeIntoSyncBegin(LoreBranchMergeIntoSyncBeginEventData),
+    /// The end of synchronizing data for a merge.
     BranchMergeIntoSyncEnd(LoreBranchMergeIntoSyncEndEventData),
+    /// A file conflict was resolved during a merge.
     BranchMergeResolveFile(LoreBranchMergeResolveFileEventData),
+    /// A revision was resolved during a merge.
     BranchMergeResolveRevision(LoreBranchMergeResolveRevisionEventData),
+    /// The start of a merge.
     BranchMergeStartBegin(LoreBranchMergeStartBeginEventData),
+    /// The end of starting a merge.
     BranchMergeStartEnd(LoreBranchMergeStartEndEventData),
+    /// The start of a cherry-pick.
     CherryPickStartBegin(LoreCherryPickStartBeginEventData),
+    /// The end of starting a cherry-pick.
     CherryPickStartEnd(LoreCherryPickStartEndEventData),
+    /// The start of a cherry-pick abort.
     CherryPickAbortBegin(LoreCherryPickAbortBeginEventData),
+    /// The end of a cherry-pick abort.
     CherryPickAbortEnd(LoreCherryPickAbortEndEventData),
+    /// A file in conflict during a cherry-pick.
     CherryPickConflictFile(LoreCherryPickConflictFileEventData),
+    /// A file conflict was marked unresolved during a cherry-pick.
     CherryPickUnresolveFile(LoreCherryPickUnresolveFileEventData),
+    /// A revision was marked unresolved during a cherry-pick.
     CherryPickUnresolveRevision(LoreCherryPickUnresolveRevisionEventData),
+    /// A file conflict was resolved during a cherry-pick.
     CherryPickResolveFile(LoreCherryPickResolveFileEventData),
+    /// A revision was resolved during a cherry-pick.
     CherryPickResolveRevision(LoreCherryPickResolveRevisionEventData),
+    /// The start of a revert.
     RevertStartBegin(LoreRevertStartBeginEventData),
+    /// The end of starting a revert.
     RevertStartEnd(LoreRevertStartEndEventData),
+    /// The start of a revert abort.
     RevertAbortBegin(LoreRevertAbortBeginEventData),
+    /// The end of a revert abort.
     RevertAbortEnd(LoreRevertAbortEndEventData),
+    /// A file conflict was resolved during a revert.
     RevertResolveFile(LoreRevertResolveFileEventData),
+    /// A revision was resolved during a revert.
     RevertResolveRevision(LoreRevertResolveRevisionEventData),
+    /// A file in conflict during a revert.
     RevertConflictFile(LoreRevertConflictFileEventData),
+    /// A file conflict was marked unresolved during a revert.
     RevertUnresolveFile(LoreRevertUnresolveFileEventData),
+    /// A revision was marked unresolved during a revert.
     RevertUnresolveRevision(LoreRevertUnresolveRevisionEventData),
+    /// A branch was protected.
     BranchProtect(LoreBranchProtectEventData),
+    /// A branch was pushed.
     BranchPush(LoreBranchPushEventData),
+    /// The start of updating a revision during a push.
     BranchPushRevisionUpdateBegin(LoreBranchPushRevisionUpdateBeginEventData),
+    /// The end of updating a revision during a push.
     BranchPushRevisionUpdateEnd(LoreBranchPushRevisionUpdateEndEventData),
+    /// The start of pushing a fragment.
     BranchPushFragmentBegin(LoreBranchPushFragmentBeginEventData),
+    /// Progress while pushing a fragment.
     BranchPushFragmentProgress(LoreBranchPushFragmentProgressEventData),
+    /// The end of pushing a fragment.
     BranchPushFragmentEnd(LoreBranchPushFragmentEndEventData),
+    /// The start of creating a branch during a push.
     BranchPushBranchCreateBegin(LoreBranchPushBranchCreateBeginEventData),
+    /// The end of creating a branch during a push.
     BranchPushBranchCreateEnd(LoreBranchPushBranchCreateEndEventData),
+    /// The start of pushing a revision.
     BranchPushRevisionPushBegin(LoreBranchPushRevisionPushBeginEventData),
+    /// An update while pushing a revision.
     BranchPushRevisionPushUpdate(LoreBranchPushRevisionPushUpdateEventData),
+    /// The end of pushing a revision.
     BranchPushRevisionPushEnd(LoreBranchPushRevisionPushEndEventData),
+    /// A branch was reset.
     BranchReset(LoreBranchResetEventData),
+    /// The start of switching the active branch.
     BranchSwitchBegin(LoreBranchSwitchBeginEventData),
+    /// The end of switching the active branch.
     BranchSwitchEnd(LoreBranchSwitchEndEventData),
+    /// A branch was unprotected.
     BranchUnprotect(LoreBranchUnprotectEventData),
+    /// Information about a file.
     FileInfo(LoreFileInfoEventData),
+    /// A diff for a file.
     FileDiff(LoreFileDiffEventData),
+    /// The hash of a file.
     FileHash(LoreFileHashEventData),
+    /// The history of a file.
     FileHistory(LoreFileHistoryEventData),
+    /// A file was written.
     FileWrite(LoreFileWriteEventData),
+    /// A file was obliterated.
     FileObliterate(LoreFileObliterateEventData),
+    /// A dump of a file.
     FileDump(LoreFileDumpEventData),
+    /// The start of adding file dependencies.
     FileDependencyAddBegin(LoreFileDependencyAddBeginEventData),
+    /// One entry while adding file dependencies.
     FileDependencyAddEntry(LoreFileDependencyAddEntryEventData),
+    /// The end of adding file dependencies.
     FileDependencyAddEnd(LoreFileDependencyAddEndEventData),
+    /// The start of removing file dependencies.
     FileDependencyRemoveBegin(LoreFileDependencyRemoveBeginEventData),
+    /// One entry while removing file dependencies.
     FileDependencyRemoveEntry(LoreFileDependencyRemoveEntryEventData),
+    /// The end of removing file dependencies.
     FileDependencyRemoveEnd(LoreFileDependencyRemoveEndEventData),
+    /// The start of listing file dependencies.
     FileDependencyListBegin(LoreFileDependencyListBeginEventData),
+    /// A file in a dependency listing.
     FileDependencyListFile(LoreFileDependencyListFileEventData),
+    /// One entry in a file dependency listing.
     FileDependencyListEntry(LoreFileDependencyListEntryEventData),
+    /// The end of the entries for one file in a dependency listing.
     FileDependencyListFileEnd(LoreFileDependencyListFileEndEventData),
+    /// The end of listing file dependencies.
     FileDependencyListEnd(LoreFileDependencyListEndEventData),
+    /// The start of a file reset.
     FileResetBegin(LoreFileResetBeginEventData),
+    /// Progress during a file reset.
     FileResetProgress(LoreFileResetProgressEventData),
+    /// The end of a file reset.
     FileResetEnd(LoreFileResetEndEventData),
+    /// One file reset.
     FileResetFile(LoreFileResetFileEventData),
+    /// A path was excluded by a filter.
     FilterExclude(LoreFilterExcludeEventData),
+    /// The start of staging files.
     FileStageBegin(LoreFileStageBeginEventData),
+    /// Progress while staging files.
     FileStageProgress(LoreFileStageProgressEventData),
+    /// The end of staging files.
     FileStageEnd(LoreFileStageEndEventData),
+    /// The revision involved in staging files.
     FileStageRevision(LoreFileStageRevisionEventData),
+    /// One file staged.
     FileStageFile(LoreFileStageFileEventData),
+    /// The start of unstaging files.
     FileUnstageBegin(LoreFileUnstageBeginEventData),
+    /// Progress while unstaging files.
     FileUnstageProgress(LoreFileUnstageProgressEventData),
+    /// The end of unstaging files.
     FileUnstageEnd(LoreFileUnstageEndEventData),
+    /// The revision involved in unstaging files.
     FileUnstageRevision(LoreFileUnstageRevisionEventData),
+    /// One file unstaged.
     FileUnstageFile(LoreFileUnstageFileEventData),
+    /// A fragment was written.
     FragmentWrite(LoreFragmentWriteEventData),
+    /// A layer was added.
     LayerAdd(LoreLayerAddEventData),
+    /// One entry in a layer listing.
     LayerEntry(LoreLayerEntryEventData),
+    /// A layer was removed.
     LayerRemove(LoreLayerRemoveEventData),
+    /// One staged entry in a layer listing.
     LayerStagedEntry(LoreLayerStagedEntryEventData),
+    /// A link was changed.
     LinkChange(LoreLinkChangeEventData),
+    /// One entry in a link listing.
     LinkEntry(LoreLinkEntryEventData),
+    /// A file lock was acquired.
     LockFileAcquire(LoreLockFileAcquireEventData),
+    /// A file lock acquisition was ignored.
     LockFileAcquireIgnore(LoreLockFileAcquireIgnoreEventData),
+    /// The start of a file lock status report.
     LockFileStatusBegin(LoreLockFileStatusBeginEventData),
+    /// One file lock status entry.
     LockFileStatus(LoreLockFileStatusEventData),
+    /// The start of a file lock query.
     LockFileQueryBegin(LoreLockFileQueryBeginEventData),
+    /// One file lock query result.
     LockFileQuery(LoreLockFileQueryEventData),
+    /// A file lock was released.
     LockFileRelease(LoreLockFileReleaseEventData),
+    /// A file lock to release was not found.
     LockFileReleaseNotFound(LoreLockFileReleaseNotFoundEventData),
+    /// Metadata was cleared on a file.
     MetadataClearFile(LoreMetadataClearFileEventData),
+    /// Metadata was cleared on a revision.
     MetadataClearRevision(LoreMetadataClearRevisionEventData),
+    /// A path was ignored.
     PathIgnore(LorePathIgnoreEventData),
+    /// A repository was created.
     RepositoryCreate(LoreRepositoryCreateEventData),
+    /// The start of a repository clone.
     RepositoryCloneBegin(LoreRepositoryCloneBeginEventData),
+    /// Progress during a repository clone.
     RepositoryCloneProgress(LoreRepositoryCloneProgressEventData),
+    /// The end of a repository clone.
     RepositoryCloneEnd(LoreRepositoryCloneEndEventData),
+    /// The start of resolving dependencies.
     DependencyResolveBegin(LoreDependencyResolveBeginEventData),
+    /// One item while resolving dependencies.
     DependencyResolveItem(LoreDependencyResolveItemEventData),
+    /// The end of resolving dependencies.
     DependencyResolveEnd(LoreDependencyResolveEndEventData),
+    /// Data about a repository.
     RepositoryData(LoreRepositoryDataEventData),
+    /// A repository configuration value.
     RepositoryConfigGet(LoreRepositoryConfigGetEventData),
+    /// The start of a repository dump.
     RepositoryDumpBegin(LoreRepositoryDumpBeginEventData),
+    /// The end of a repository dump.
     RepositoryDumpEnd(LoreRepositoryDumpEndEventData),
+    /// One entry in a repository listing.
     RepositoryListEntry(LoreRepositoryListEntryEventData),
+    /// An instance of a repository.
     RepositoryInstance(LoreRepositoryInstanceEventData),
+    /// The start of verifying repository state.
     RepositoryVerifyStateBegin(LoreRepositoryVerifyStateBeginEventData),
+    /// The end of verifying repository state.
     RepositoryVerifyStateEnd(LoreRepositoryVerifyStateEndEventData),
+    /// A fragment verified in a repository.
     RepositoryVerifyFragment(LoreRepositoryVerifyFragmentEventData),
+    /// A fragment match found while verifying a repository.
     RepositoryVerifyFragmentMatch(LoreRepositoryVerifyFragmentMatchEventData),
+    /// A remote fragment checked while verifying a repository.
     RepositoryVerifyFragmentRemote(LoreRepositoryVerifyFragmentRemoteEventData),
+    /// A dump of repository state.
     RepositoryStateDump(LoreRepositoryStateDumpEventData),
+    /// One node in a repository state dump.
     RepositoryStateDumpNode(LoreRepositoryStateDumpNodeEventData),
+    /// The revision involved in a repository status report.
     RepositoryStatusRevision(LoreRepositoryStatusRevisionEventData),
+    /// One file in a repository status report.
     RepositoryStatusFile(LoreRepositoryStatusFileEventData),
+    /// File counts in a repository status report.
     RepositoryStatusCount(LoreRepositoryStatusCountEventData),
+    /// A summary of a repository status report.
     RepositoryStatusSummary(LoreRepositoryStatusSummaryEventData),
+    /// A result from querying the immutable store.
     RepositoryStoreImmutableQuery(LoreRepositoryStoreImmutableQueryEventData),
+    /// The start of committing a revision.
     RevisionCommitBegin(LoreRevisionCommitBeginEventData),
+    /// Progress while committing a revision.
     RevisionCommitProgress(LoreRevisionCommitProgressEventData),
+    /// The end of committing a revision.
     RevisionCommitEnd(LoreRevisionCommitEndEventData),
+    /// The committed revision.
     RevisionCommitRevision(LoreRevisionCommitRevisionEventData),
+    /// Information about a revision.
     RevisionInfo(LoreRevisionInfoEventData),
+    /// A change in a revision's delta.
     RevisionInfoDelta(LoreRevisionInfoDeltaEventData),
+    /// One file in a revision diff.
     RevisionDiffFile(LoreRevisionDiffFileEventData),
+    /// A revision found by a search.
     RevisionFind(LoreRevisionFindEventData),
+    /// The history of a revision.
     RevisionHistory(LoreRevisionHistoryEventData),
+    /// One entry in a revision history.
     RevisionHistoryEntry(LoreRevisionHistoryEntryEventData),
+    /// The start of restoring a file from a revision.
     RevisionRestoreFileBegin(LoreRevisionRestoreFileBeginEventData),
+    /// A file restored from a revision.
     RevisionRestoreFile(LoreRevisionRestoreFileEventData),
+    /// The end of restoring a file from a revision.
     RevisionRestoreFileEnd(LoreRevisionRestoreFileEndEventData),
+    /// The start of restoring a fragment.
     RevisionRestoreFragmentBegin(LoreRevisionRestoreFragmentBeginEventData),
+    /// Progress while restoring a fragment.
     RevisionRestoreFragmentProgress(LoreRevisionRestoreFragmentProgressEventData),
+    /// The end of restoring a fragment.
     RevisionRestoreFragmentEnd(LoreRevisionRestoreFragmentEndEventData),
+    /// The revision being restored.
     RevisionRestoreRevision(LoreRevisionRestoreRevisionEventData),
+    /// The start of synchronizing data for a restore.
     RevisionRestoreSyncBegin(LoreRevisionRestoreSyncBeginEventData),
+    /// The end of synchronizing data for a restore.
     RevisionRestoreSyncEnd(LoreRevisionRestoreSyncEndEventData),
+    /// A revision was resolved.
     RevisionResolve(LoreRevisionResolveEventData),
+    /// The target revision of a sync.
     RevisionSyncTarget(LoreRevisionSyncTargetEventData),
+    /// One file synced.
     RevisionSyncFile(LoreRevisionSyncFileEventData),
+    /// Progress during a revision sync.
     RevisionSyncProgress(LoreRevisionSyncProgressEventData),
+    /// The revision involved in a sync.
     RevisionSyncRevision(LoreRevisionSyncRevisionEventData),
+    /// A bisect result.
     RevisionBisect(LoreRevisionBisectEventData),
+    /// A notification that a branch was created.
     NotificationBranchCreated(LoreNotificationBranchCreatedEventData),
+    /// A notification that a branch was deleted.
     NotificationBranchDeleted(LoreNotificationBranchDeletedEventData),
+    /// A notification that a branch was pushed.
     NotificationBranchPushed(LoreNotificationBranchPushedEventData),
+    /// A notification that a resource was locked.
     NotificationResourceLocked(LoreNotificationResourceLockedEventData),
+    /// A notification that a resource was unlocked.
     NotificationResourceUnlocked(LoreNotificationResourceUnlockedEventData),
+    /// A notification that a subscription was created.
     NotificationSubscribed(LoreNotificationSubscribedEventData),
+    /// A notification that a subscription was removed.
     NotificationUnsubscribed(LoreNotificationUnsubscribedEventData),
+    /// A shared store was created.
     SharedStoreCreate(LoreSharedStoreCreateEventData),
+    /// Information about a shared store.
     SharedStoreInfo(LoreSharedStoreInfoEventData),
+    /// One staged entry in a link listing.
     LinkStagedEntry(LoreLinkStagedEntryEventData),
     // Content-addressed storage API
+    /// A store was opened.
     StorageOpened(LoreStorageOpenedEventData),
+    /// A put item completed.
     StoragePutItemComplete(LoreStoragePutItemCompleteEventData),
+    /// The header for a get item.
     StorageGetHeader(LoreStorageGetHeaderEventData),
+    /// A data payload for a get item.
     StorageGetData(LoreStorageGetDataEventData),
+    /// A get item completed.
     StorageGetItemComplete(LoreStorageGetItemCompleteEventData),
+    /// A get-metadata item completed.
     StorageGetMetadataItemComplete(LoreStorageGetMetadataItemCompleteEventData),
+    /// A copy item completed.
     StorageCopyItemComplete(LoreStorageCopyItemCompleteEventData),
+    /// An obliterate item completed.
     StorageObliterateItemComplete(LoreStorageObliterateItemCompleteEventData),
+    /// An upload item completed.
     StorageUploadItemComplete(LoreStorageUploadItemCompleteEventData),
     // Low-level memory-based revision control API
+    /// A revision tree was loaded.
     RevisionTreeLoaded(LoreRevisionTreeLoadedEventData),
+    /// A resolve-path call completed.
     RevisionTreeResolvePathComplete(LoreRevisionTreeResolvePathCompleteEventData),
+    /// One child node in a revision tree.
     RevisionTreeChild(LoreRevisionTreeChildEventData),
+    /// Information about a revision tree node.
     RevisionTreeNodeInfo(LoreRevisionTreeNodeInfoEventData),
+    /// The path of a revision tree node.
     RevisionTreeNodePath(LoreRevisionTreeNodePathEventData),
+    /// An add call completed.
     RevisionTreeAddComplete(LoreRevisionTreeAddCompleteEventData),
+    /// A delete call completed.
     RevisionTreeDeleteComplete(LoreRevisionTreeDeleteCompleteEventData),
+    /// A modify call completed.
     RevisionTreeModifyComplete(LoreRevisionTreeModifyCompleteEventData),
+    /// A move call completed.
     RevisionTreeMoveComplete(LoreRevisionTreeMoveCompleteEventData),
+    /// A metadata-set call completed.
     RevisionTreeMetadataSetComplete(LoreRevisionTreeMetadataSetCompleteEventData),
+    /// A metadata-get call completed.
     RevisionTreeMetadataGetComplete(LoreRevisionTreeMetadataGetCompleteEventData),
+    /// A commit call completed.
     RevisionTreeCommitComplete(LoreRevisionTreeCommitCompleteEventData),
+    /// A close call completed.
     RevisionTreeCloseComplete(LoreRevisionTreeCloseCompleteEventData),
 }
 

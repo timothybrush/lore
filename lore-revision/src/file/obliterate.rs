@@ -22,12 +22,16 @@ use crate::store::StoreObliterateStats;
 use crate::util;
 use crate::util::path::RelativePath;
 
+/// Data for the event emitted when file content is obliterated.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileObliterateEventData {
+    /// Address of the obliterated content.
     pub address: Address,
+    /// Number of fragments removed.
     pub num_fragments: usize,
+    /// Number of payloads removed.
     pub num_payloads: usize,
 }
 

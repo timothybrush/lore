@@ -19,17 +19,21 @@ use crate::repository::RepositoryWriteToken;
 use crate::state;
 use crate::util::path::RelativePath;
 
+/// Data for an event reporting that revision metadata was cleared.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreMetadataClearRevisionEventData {
+    /// Hash of the revision whose metadata was cleared.
     pub revision: Hash,
 }
 
+/// Data for an event reporting that a file's metadata was cleared.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreMetadataClearFileEventData {
+    /// Path of the file whose metadata was cleared.
     pub path: LoreString,
 }
 

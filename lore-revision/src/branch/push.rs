@@ -43,109 +43,156 @@ use crate::state::State;
 use crate::store;
 use crate::util::serde::u8_as_bool;
 
+/// Data for the event sent when a branch push starts.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchPushEventData {
+    /// The remote being pushed to.
     pub remote: LoreString,
+    /// The repository being pushed.
     pub repository: RepositoryId,
+    /// The branch being pushed.
     pub branch: BranchId,
+    /// The name of the branch being pushed.
     pub branch_name: LoreString,
+    /// The latest revision of the branch on the remote.
     pub remote_revision: Hash,
+    /// The latest revision of the branch in the local repository.
     pub local_revision: Hash,
+    /// The number of revisions on the remote that are not present locally.
     pub remote_history: u64,
+    /// The number of local revisions to push.
     pub local_history: u64,
+    /// Set when the local revision is already present on the remote.
     #[serde(with = "u8_as_bool")]
     pub flag_already_pushed: u8,
+    /// Set when the branch is the repository's default branch.
     #[serde(with = "u8_as_bool")]
     pub flag_default: u8,
+    /// Set when the repository is a linked repository.
     #[serde(with = "u8_as_bool")]
     pub flag_link: u8,
+    /// Set when the repository is a layer.
     #[serde(with = "u8_as_bool")]
     pub flag_layer: u8,
 }
 
+/// Data for the event sent before a revision's parent is rewritten during push.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchPushRevisionUpdateBeginEventData {
+    /// The revision being updated.
     pub revision: Hash,
+    /// The previous parent revision.
     pub old_parent: Hash,
+    /// The new parent revision.
     pub new_parent: Hash,
 }
 
+/// Data for the event sent after a revision's parent is rewritten during push.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchPushRevisionUpdateEndEventData {
+    /// The updated revision.
     pub revision: Hash,
 }
 
+/// Data for the event sent before fragments are transferred during push.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchPushFragmentBeginEventData {
+    /// The number of fragments to transfer.
     pub fragments: u64,
+    /// The total number of bytes to transfer.
     pub bytes_total: u64,
 }
 
+/// Data for the event sent as fragments are transferred during push.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchPushFragmentProgressEventData {
+    /// The number of fragments transferred so far.
     pub complete: u64,
+    /// The total number of fragments to transfer.
     pub count: u64,
+    /// The number of bytes transferred so far.
     pub bytes_transferred: u64,
+    /// The total number of bytes to transfer.
     pub bytes_total: u64,
 }
 
+/// Data for the event sent after fragments are transferred during push.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchPushFragmentEndEventData {
+    /// The number of fragments transferred.
     pub fragments: u64,
+    /// The number of bytes transferred.
     pub bytes_transferred: u64,
 }
 
+/// Data for the event sent before a branch is created on the remote.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchPushBranchCreateBeginEventData {
+    /// The local revision the branch starts from.
     pub local_revision: Hash,
 }
 
+/// Data for the event sent after a branch is created on the remote.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchPushBranchCreateEndEventData {
+    /// The revision the branch points to on the remote.
     pub remote_revision: Hash,
 }
 
+/// Data for the event sent before a revision is pushed to the remote.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchPushRevisionPushBeginEventData {
+    /// The latest revision of the branch on the remote.
     pub remote_revision: Hash,
+    /// The local revision being pushed.
     pub local_revision: Hash,
 }
 
+/// Data for the event sent when the remote assigns a pushed revision a new identity.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchPushRevisionPushUpdateEventData {
+    /// The revision before the remote reassigned it.
     pub old_revision: Hash,
+    /// The revision the remote assigned.
     pub new_revision: Hash,
+    /// The sequential number of the new revision.
     pub new_revision_number: u64,
 }
 
+/// Data for the event sent after a revision is pushed to the remote.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchPushRevisionPushEndEventData {
+    /// The branch revision on the remote before the push.
     pub old_remote_revision: Hash,
+    /// The branch revision on the remote after the push.
     pub new_remote_revision: Hash,
+    /// The sequential number of the new remote revision.
     pub new_remote_revision_number: u64,
+    /// A message returned by the remote for the push.
     pub message: LoreString,
+    /// Set when the remote performed a fast-forward merge.
     #[serde(with = "u8_as_bool")]
     pub fast_forward_merged: u8,
 }

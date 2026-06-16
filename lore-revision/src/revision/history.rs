@@ -19,11 +19,14 @@ use crate::repository::RepositoryContext;
 use crate::runtime::execution_context;
 use crate::state::State;
 
+/// Header information for a revision history listing.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionHistoryEventData {
+    /// Repository identifier the history belongs to.
     pub repository: RepositoryId,
+    /// Branch identifier the history is listed for.
     pub branch: BranchId,
 }
 
@@ -33,12 +36,17 @@ impl LoreRevisionHistoryEventData {
     }
 }
 
+/// A single entry in a revision history listing.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionHistoryEntryEventData {
+    /// Revision hash signature.
     pub revision: Hash,
+    /// Revision number.
     pub revision_number: u64,
+    /// Parent revision hashes; the first is the direct parent and the second
+    /// is the other parent of a merge, or zero when there is none.
     pub parent: [Hash; 2],
 }
 

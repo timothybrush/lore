@@ -21,15 +21,22 @@ use crate::state::State;
 use crate::util::collect_stream::collect_stream_with_summary;
 use crate::util::path::RelativePath;
 
+/// Details of a single file that differs between two revisions.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionDiffFileEventData {
+    /// Path of the file relative to the repository root.
     pub path: LoreString,
+    /// Action applied to the file.
     pub action: LoreFileAction,
+    /// Flag indicating the entry on the source side is a file rather than a directory.
     pub old_is_file: u8,
+    /// Flag indicating the entry on the target side is a file rather than a directory.
     pub new_is_file: u8,
+    /// Address of the file content on the source side.
     pub old_address: Address,
+    /// Address of the file content on the target side.
     pub new_address: Address,
 }
 

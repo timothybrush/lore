@@ -54,11 +54,14 @@ pub enum ImmutableError {
 use lore_storage::options::ReadOptions;
 use lore_storage::options::WriteOptions;
 
+/// Event data reporting a single fragment written or deduplicated.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFragmentWriteEventData {
+    /// The fragment that was written
     pub fragment: Fragment,
+    /// Non-zero if the fragment already existed and was deduplicated
     pub deduplicated: u8,
 }
 

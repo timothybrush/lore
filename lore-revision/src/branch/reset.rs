@@ -95,12 +95,16 @@ impl EventError for ResetError {
     }
 }
 
+/// Event data reported when a branch is reset to a revision.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchResetEventData {
+    /// Branch identifier.
     pub id: Context,
+    /// Branch name.
     pub name: LoreString,
+    /// Revision the branch was reset to.
     pub revision: Hash,
 }
 

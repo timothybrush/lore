@@ -25,10 +25,12 @@ use crate::util;
 use crate::util::path::RelativePath;
 use crate::util::path::is_path_inside_repository;
 
+/// Data for the event emitted when file content is written to a destination.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileWriteEventData {
+    /// Path that was written.
     pub path: LoreString,
 }
 

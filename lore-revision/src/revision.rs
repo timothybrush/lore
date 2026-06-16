@@ -1122,6 +1122,7 @@ pub async fn tree(
     Ok(TreeResult { paths })
 }
 
+/// Information about a revision being resolved from a signature.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

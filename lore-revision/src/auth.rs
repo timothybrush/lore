@@ -20,6 +20,7 @@ pub mod userinfo;
 
 /////////////////////////////////
 
+/// Event data carrying an authentication URL for the user to open.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

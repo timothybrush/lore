@@ -100,49 +100,75 @@ impl EventError for LayerError {
     }
 }
 
+/// Data for the event emitted when a layer is added.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLayerAddEventData {
+    /// Path in the outer repository where the layer is placed.
     pub target_path: LoreString,
+    /// Identifier of the source repository.
     pub source_repository: RepositoryId,
+    /// Path inside the source repository where the layer starts.
     pub source_path: LoreString,
+    /// Metadata used to match revisions between the repositories.
     pub metadata: LoreString,
+    /// Revision of the source repository.
     pub revision: Hash,
 }
 
+/// Data for the event describing a single configured layer.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLayerEntryEventData {
+    /// Path in the outer repository where the layer is placed.
     pub target_path: LoreString,
+    /// Identifier of the source repository.
     pub source_repository: RepositoryId,
+    /// Path inside the source repository where the layer starts.
     pub source_path: LoreString,
+    /// Metadata used to match revisions between the repositories.
     pub metadata: LoreString,
+    /// Revision of the source repository.
     pub revision: Hash,
 }
 
+/// Data for the event describing a layer that has staged changes.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLayerStagedEntryEventData {
+    /// Path in the outer repository where the layer is placed.
     pub target_path: LoreString,
+    /// Identifier of the source repository.
     pub source_repository: RepositoryId,
+    /// Number of staged files in the layer.
     pub staged_file_count: u64,
 }
 
+/// Data for the event emitted when a layer is removed.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreLayerRemoveEventData {
+    /// Path in the outer repository where the layer was placed.
     pub target_path: LoreString,
+    /// Identifier of the source repository.
     pub source_repository: RepositoryId,
+    /// Path inside the source repository where the layer started.
     pub source_path: LoreString,
+    /// Revision of the source repository.
     pub revision: Hash,
+    /// Set when removal was forced.
     pub forced: u8,
+    /// Set when the layer files were purged from disk.
     pub purged: u8,
+    /// Number of files removed.
     pub file_count: u64,
+    /// Number of directories removed.
     pub directory_count: u64,
+    /// Number of modified files encountered.
     pub modified_count: u64,
 }
 

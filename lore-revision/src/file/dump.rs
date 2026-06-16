@@ -14,14 +14,20 @@ use crate::state;
 use crate::store::StoreMatch;
 use crate::util::path::RelativePath;
 
+/// Data for the event reporting the stored representation of file content.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreFileDumpEventData {
+    /// Address of the content.
     pub address: Address,
+    /// Flags describing the stored content.
     pub flags: u32,
+    /// Size of the stored payload in bytes.
     pub size_payload: u32,
+    /// Size of the content in bytes.
     pub size_content: u64,
+    /// Set when a matching stored object was found.
     pub match_made: u8,
 }
 

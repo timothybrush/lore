@@ -90,69 +90,97 @@ use crate::util;
 use crate::util::path::RelativePath;
 use crate::util::serde::u8_as_bool;
 
+/// Event data reported when a branch is created.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchCreateEventData {
+    /// Name of the created branch.
     pub name: LoreString,
+    /// Latest revision the new branch points at.
     pub latest: Hash,
+    /// Set when creating the branch also produced a new commit.
     #[serde(with = "u8_as_bool")]
     pub is_commit: u8,
 }
 
+/// Event data reported when a branch is archived.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchArchiveEventData {
+    /// Name of the archived branch.
     pub name: LoreString,
 }
 
+/// Event data reported at the start of a branch listing.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchListBeginEventData {
+    /// Location the listed branches come from.
     pub location: LoreBranchLocation,
 }
 
+/// Event data reported for each branch in a branch listing.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchListEntryEventData {
+    /// Location this branch comes from.
     pub location: LoreBranchLocation,
+    /// Branch identifier.
     pub id: BranchId,
+    /// Branch name.
     pub name: LoreString,
+    /// Branch category.
     pub category: LoreString,
+    /// Latest revision the branch points at.
     pub latest: Hash,
+    /// Stack of branch points this branch was created from.
     pub stack: LoreArray<LoreBranchPoint>,
+    /// Identifier of the user who created the branch.
     pub creator: LoreString,
+    /// Creation time of the branch as a timestamp.
     pub created: u64,
+    /// Set when this branch is the current branch.
     #[serde(with = "u8_as_bool")]
     pub is_current: u8,
+    /// Set when this branch has been archived.
     #[serde(with = "u8_as_bool")]
     pub archived: u8,
 }
 
+/// Event data reported at the end of a branch listing.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchListEndEventData {
+    /// Location the listed branches came from.
     pub location: LoreBranchLocation,
+    /// Number of branches that were listed.
     pub count: u64,
 }
 
+/// Event data reported at the start of a branch diff.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchDiffBeginEventData {
+    /// Unused placeholder field.
     pub _unused: u32,
 }
 
+/// Event data describing a single changed node in a branch diff.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchDiffNodeData {
+    /// File action applied to the node.
     pub action: LoreFileAction,
+    /// Path of the node.
     pub path: LoreString,
+    /// Set when the change was merged automatically.
     #[serde(with = "u8_as_bool")]
     pub automerged: u8,
 }
@@ -176,67 +204,86 @@ impl LoreBranchDiffNodeData {
     }
 }
 
+/// Event data reported at the start of the change section of a branch diff.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchDiffChangeBeginEventData {
+    /// Number of changes that follow.
     pub changes_count: usize,
 }
 
+/// Event data reporting a single change in a branch diff.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchDiffChangeEventData {
+    /// The changed node.
     pub change: LoreBranchDiffNodeData,
 }
 
+/// Event data reported at the end of the change section of a branch diff.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchDiffChangeEndEventData {
+    /// Unused placeholder field.
     pub _unused: u32,
 }
 
+/// Event data reported at the start of the conflict section of a branch diff.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchDiffConflictBeginEventData {
+    /// Number of conflicts that follow.
     pub conflicts_count: usize,
 }
 
+/// Event data reporting a single conflict in a branch diff.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchDiffConflictEventData {
+    /// The change on the source side of the conflict.
     pub source_change: LoreBranchDiffNodeData,
+    /// The change on the target side of the conflict.
     pub target_change: LoreBranchDiffNodeData,
 }
 
+/// Event data reported at the end of the conflict section of a branch diff.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchDiffConflictEndEventData {
+    /// Unused placeholder field.
     pub _unused: u32,
 }
 
+/// Event data reported at the end of a branch diff.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchDiffEndEventData {
+    /// Unused placeholder field.
     pub _unused: u32,
 }
 
+/// Event data reported when a branch is protected.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchProtectEventData {
+    /// Name of the protected branch.
     pub name: LoreString,
 }
 
+/// Event data reported when a branch is unprotected.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchUnprotectEventData {
+    /// Name of the unprotected branch.
     pub name: LoreString,
 }
 

@@ -30,10 +30,13 @@ use crate::revision::ResolveSearchLocation;
 use crate::util::path::RelativePath;
 use crate::util::serde::u8_as_bool;
 
+/// A block of raw bytes described by a pointer and a length.
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct LoreBinary {
+    /// Pointer to the start of the byte block.
     pub payload: *const std::ffi::c_void,
+    /// Number of bytes in the block.
     pub length: usize,
 }
 
@@ -66,9 +69,17 @@ impl<'de> Deserialize<'de> for LoreBinary {
     }
 }
 
+/// A string described by a pointer to its character data and a length, holding
+/// text as a sequence of bytes.
+///
+/// The text is UTF-8. The length field counts the bytes before the trailing
+/// NUL. An empty string is a NULL pointer with length 0, and a length of 0
+/// means the string is empty.
 #[repr(C)]
 pub struct LoreString {
+    /// Pointer to the start of the character data.
     pub string: *const std::ffi::c_char,
+    /// Number of bytes in the string, not counting any trailing terminator.
     pub length: usize,
 }
 
@@ -317,10 +328,14 @@ impl<'de> Deserialize<'de> for LoreString {
     }
 }
 
+/// A contiguous array of elements described by a pointer and a count.
+/// Holds zero or more values of the element type laid out one after another.
 #[repr(C)]
 #[derive(PartialEq)]
 pub struct LoreArray<T> {
+    /// Pointer to the first element.
     ptr: *const T,
+    /// Number of elements in the array.
     count: usize,
 }
 
@@ -470,19 +485,27 @@ where
     }
 }
 
+/// Selects which configuration sources are loaded. The values are flags
+/// that can be combined.
 /// cbindgen:prefix-with-name
 /// cbindgen:rename-all=ScreamingSnakeCase
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialEq, Default)]
 pub enum LoreLoadConfig {
+    /// Load no configuration from any source.
     Disable = 0,
+    /// Load configuration from the repository.
     Repository = 1,
+    /// Load configuration from the user's home location.
     Home = 2,
+    /// Load configuration from the environment.
     Environment = 4,
+    /// Load configuration from all sources.
     #[default]
     Default = 7,
 }
 
+/// Common options shared by repository operations.
 #[repr(C)]
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LoreGlobalArgs {
@@ -642,9 +665,28 @@ const fn default_store_keep_alive_seconds() -> u64 {
 
 pub type LoreEventCallback = Option<Box<dyn Fn(&LoreEvent) + Send + Sync>>;
 
+/// A callback function paired with a caller-supplied context value, used to
+/// receive events.
+///
+/// The callback does not run inside the lore_* call that configured it. It runs
+/// on a thread the library manages, one of a pool of worker threads, not the
+/// calling thread.
+///
+/// The event pointer, and everything it points to, is valid only until the
+/// callback returns. Copy any data you need to keep, and do not use the event
+/// pointer after the callback returns.
+///
+/// Events for a single call arrive one at a time. Two concurrent asynchronous
+/// calls that share one configuration can run the callback at the same time, so
+/// a shared callback must be safe to call from more than one thread at once. A
+/// callback that blocks delays the library's other work and can stall other
+/// in-flight calls. Do long or blocking work on your own thread and return from
+/// the callback promptly.
 #[repr(C)]
 pub struct LoreEventCallbackConfig {
+    /// Caller-supplied value passed back to the callback on each call.
     pub user_context: u64,
+    /// Function invoked for each event, or none to receive no events.
     pub func: Option<unsafe extern "C" fn(event: &LoreEvent, user_context: u64)>,
 }
 
@@ -833,37 +875,52 @@ pub enum LoreError {
     Oversized = 26,
 
     // Legacy error categories (transitional, will be removed)
+    /// A requested item was not found.
     NotFound = 101,
+    /// An item that was being created already exists.
     AlreadyExists = 102,
+    /// A connection could not be established or was lost.
     Connection = 103,
 
     /// An internal error occurred.
     Internal = -1,
 }
 
+/// A metadata value, tagged by the kind of value it holds.
 /// cbindgen:prefix-with-name
 /// cbindgen:rename-all=ScreamingSnakeCase
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "tagName", content = "data", rename_all = "camelCase")]
 pub enum LoreMetadata {
+    /// An address value.
     Address(Address),
+    /// A boolean value, stored as a byte.
     Boolean(#[serde(with = "u8_as_bool")] u8),
+    /// A block of raw bytes.
     Binary(LoreBinary),
+    /// A context value.
     Context(Context),
+    /// A hash value.
     Hash(Hash),
+    /// An unsigned integer value.
     Numeric(u64),
+    /// A string value.
     String(LoreString),
 }
 
 /// cbindgen:prefix-with-name
 /// cbindgen:rename-all=ScreamingSnakeCase
 #[repr(C)]
+/// The kind of value held by a metadata entry.
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum LoreMetadataType {
+    /// A block of raw bytes.
     Binary = 0,
+    /// An unsigned integer value.
     Numeric = 1,
+    /// A string value.
     String = 2,
 }
 
@@ -880,34 +937,47 @@ impl From<LoreMetadataType> for crate::metadata::MetadataType {
 /// cbindgen:prefix-with-name
 /// cbindgen:rename-all=ScreamingSnakeCase
 #[repr(C)]
+/// The kind of a tracked node.
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum LoreNodeType {
+    /// A directory.
     Directory = 0,
+    /// A file.
     File = 1,
+    /// A symbolic link.
     Link = 2,
 }
 
 /// cbindgen:prefix-with-name
 /// cbindgen:rename-all=ScreamingSnakeCase
 #[repr(C)]
+/// The change applied to a file.
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum LoreFileAction {
+    /// The file is unchanged.
     Keep = 0,
+    /// The file was added.
     Add = 1,
+    /// The file was deleted.
     Delete = 2,
+    /// The file was moved to a new path.
     Move = 3,
+    /// The file was copied from another path.
     Copy = 4,
 }
 
 /// cbindgen:prefix-with-name
 /// cbindgen:rename-all=ScreamingSnakeCase
 #[repr(C)]
+/// Where a branch is located.
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum LoreBranchLocation {
+    /// A branch held locally.
     Local = 0,
+    /// A branch held on the server.
     Remote = 1,
 }
 
@@ -920,10 +990,13 @@ impl Display for LoreBranchLocation {
     }
 }
 
+/// A branch paired with a revision on that branch.
 #[repr(C)]
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub struct LoreBranchPoint {
+    /// The branch.
     pub branch: BranchId,
+    /// The revision on the branch.
     pub revision: Hash,
 }
 

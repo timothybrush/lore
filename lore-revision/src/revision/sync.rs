@@ -55,6 +55,7 @@ use crate::util;
 use crate::util::path::RelativePath;
 use crate::util::serde::u8_as_bool;
 
+/// Source and target revisions selected for a sync.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -81,22 +82,33 @@ pub struct LoreRevisionSyncTargetEventData {
     pub local: u8,
 }
 
+/// Progress counters reported while a sync updates the working files.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionSyncProgressEventData {
+    /// Number of files updated so far.
     pub file_update: usize,
+    /// Total number of files to update.
     pub file_update_total: usize,
+    /// Number of files deleted so far.
     pub file_delete: usize,
+    /// Total number of files to delete.
     pub file_delete_total: usize,
+    /// Number of files merged automatically so far.
     pub file_automerge: usize,
+    /// Number of files with conflicts so far.
     pub file_conflict: usize,
+    /// Number of bytes updated so far.
     pub bytes_update: u64,
+    /// Total number of bytes to update.
     pub bytes_update_total: u64,
+    /// Flag indicating discovery of the work to do has finished.
     #[serde(with = "u8_as_bool")]
     pub discovery_complete: u8,
 }
 
+/// The revision that resulted from a sync.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -179,13 +191,18 @@ impl From<FsError> for SyncError {
     }
 }
 
+/// Details of a single file changed by a sync.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevisionSyncFileEventData {
+    /// Path of the file relative to the repository root.
     pub path: LoreString,
+    /// Size of the file in bytes.
     pub size: u64,
+    /// Action applied to the file.
     pub action: LoreFileAction,
+    /// Flag indicating the entry is a file rather than a directory.
     pub flag_file: u8,
 }
 

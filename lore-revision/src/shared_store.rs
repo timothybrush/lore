@@ -94,10 +94,12 @@ pub fn find_existing_shared_store_in_dir(
     .into())
 }
 
+/// Data for an event reporting that a shared store was created.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreSharedStoreCreateEventData {
+    /// Filesystem path of the created shared store.
     pub path: LoreString,
 }
 
@@ -404,12 +406,17 @@ pub async fn get_shared_store_path_for_repo(
     )
 }
 
+/// Data for an event describing the configured shared stores.
 #[repr(C)]
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreSharedStoreInfoEventData {
+    /// Nonzero when a shared store is used automatically for the repository.
     pub use_automatically: u8,
+    /// Remote URLs of the shared stores.
     pub remote_urls: LoreArray<LoreString>,
+    /// Filesystem paths of the shared stores.
     pub paths: LoreArray<LoreString>,
+    /// Per-store flag, nonzero when the store exists on disk.
     pub exists: LoreArray<u8>,
 }

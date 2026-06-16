@@ -62,6 +62,7 @@ pub const ANCHOR_STAGED: &str = "anchor-staged";
     Deserialize,
 )]
 pub struct InstanceId {
+    /// The raw 16-byte identifier
     data: [u8; 16],
 }
 
@@ -334,12 +335,16 @@ pub async fn instances_on_branch(
     Ok(matches)
 }
 
+/// Event data warning that several instances share the same checked-out branch.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreBranchMultipleInstanceEventData {
+    /// The branch checked out by more than one instance
     pub branch: BranchId,
+    /// Identifiers of the other instances on the branch
     pub instance_ids: crate::interface::LoreArray<InstanceId>,
+    /// Filesystem paths of the other instances on the branch
     pub instance_paths: crate::interface::LoreArray<LoreString>,
 }
 
@@ -552,11 +557,17 @@ use crate::event::LoreEvent;
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRepositoryInstanceEventData {
+    /// Identifier of the instance
     pub instance_id: InstanceId,
+    /// Filesystem path of the instance
     pub path: LoreString,
+    /// Name of the branch the instance has checked out
     pub branch_name: LoreString,
+    /// Identifier of the branch the instance has checked out
     pub branch: BranchId,
+    /// Current revision hash for the instance
     pub revision: Hash,
+    /// Non-zero if the instance path no longer exists on disk
     pub stale: u8,
 }
 

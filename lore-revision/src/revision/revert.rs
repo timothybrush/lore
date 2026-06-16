@@ -32,73 +32,98 @@ use crate::stage;
 use crate::stage::StageError;
 use crate::state::State;
 
+/// Event data reported at the start of a revert.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevertStartBeginEventData {
+    /// Branch identifier.
     pub branch: BranchId,
+    /// Identifier of the revision being reverted.
     pub revision: Hash,
+    /// Number of the revision being reverted.
     pub revision_number: u64,
 }
 
+/// Event data reported at the end of a revert.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevertStartEndEventData {
+    /// Progress statistics for the applied changes.
     pub stats: LoreRevisionSyncProgressEventData,
+    /// Resulting revision hash signature.
     pub signature: Hash,
+    /// Flag indicating the revert produced conflicts.
     pub has_conflicts: u8,
 }
 
+/// Event data reported at the start of aborting a revert.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevertAbortBeginEventData {
+    /// Identifier of the staged revision being discarded.
     pub state_staged_revision: Hash,
+    /// Identifier of the current revision being restored.
     pub state_current_revision: Hash,
 }
 
+/// Event data reported at the end of aborting a revert.
 #[repr(C)]
 #[derive(Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevertAbortEndEventData {
+    /// Unused placeholder field.
     pub _unused: u32,
 }
 
+/// Event data reported when a file is resolved during a revert.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevertResolveFileEventData {
+    /// Path of the file.
     pub path: LoreString,
 }
 
+/// Event data reported when a revision is resolved during a revert.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevertResolveRevisionEventData {
+    /// Repository identifier.
     pub repository: RepositoryId,
+    /// Identifier of the revision.
     pub revision: Hash,
 }
 
+/// Event data reported for a file in conflict during a revert.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevertConflictFileEventData {
+    /// Path of the file.
     pub path: LoreString,
 }
 
+/// Event data reported when a file is unresolved during a revert.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevertUnresolveFileEventData {
+    /// Path of the file.
     pub path: LoreString,
 }
 
+/// Event data reported when a revision is unresolved during a revert.
 #[repr(C)]
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoreRevertUnresolveRevisionEventData {
+    /// Repository identifier.
     pub repository: RepositoryId,
+    /// Identifier of the revision.
     pub revision: Hash,
 }
 
